@@ -72,7 +72,7 @@ module Parslet
     # @note Please be aware of encodings at this point. 
     #
     def pos
-      Position.new(@str.string, @str.pos)
+      Position.new(@str.string, @str.pos, @str.charpos)
     end
     def bytepos
       @str.pos

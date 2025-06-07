@@ -84,7 +84,9 @@ describe Parslet::ErrorReporter::Contextual do
 
   describe '#reset' do
     before do
-      allow(fake_source).to receive(:pos).and_return(Parslet::Position.new('source', 13))
+      allow(fake_source).to receive(:pos).and_return(Parslet::Position.new(
+                                                       "source", 13, 13
+                                                     ))
       allow(fake_source).to receive(:line_and_column).and_return([1, 1])
     end
 
@@ -98,7 +100,9 @@ describe Parslet::ErrorReporter::Contextual do
 
   describe 'label' do
     before do
-      allow(fake_source).to receive(:pos).and_return(Parslet::Position.new('source', 13))
+      allow(fake_source).to receive(:pos).and_return(Parslet::Position.new(
+                                                       "source", 13, 13
+                                                     ))
       allow(fake_source).to receive(:line_and_column).and_return([1, 1])
     end
 

@@ -1,37 +1,39 @@
 require 'spec_helper'
 
 describe Parslet::Slice do
-  def cslice(string, offset, cache = nil)
+  def cslice(string, offset, charoff, cache = nil)
     described_class.new(
-      Parslet::Position.new(string, offset),
-      string, cache
+      Parslet::Position.new(string, offset, charoff),
+      string,
+      cache
     )
   end
 
   describe 'construction' do
     it 'constructs from an offset and a string' do
-      cslice('foobar', 40)
+      cslice("foobar", 40, 6)
     end
   end
 
   context "('foobar', 40, 'foobar')" do
-    let(:slice) { cslice('foobar', 40) }
+    let(:slice) { cslice('foobar', 40, 6) }
 
     describe 'comparison' do
       it 'is equal to other slices with the same attributes' do
-        other = cslice('foobar', 40)
+        other = cslice('foobar', 40, 40)
         slice.should == other
         other.should == slice
       end
 
-      it 'is equal to other slices (offset is irrelevant for comparison)' do
-        other = cslice('foobar', 41)
+      it "is equal to other slices (offset is irrelevant for comparison)" do
+        other = cslice("foobar", 41, 41)
         slice.should == other
         other.should == slice
       end
 
       it 'is equal to a string with the same content' do
         slice.should == 'foobar'
+
       end
 
       it 'is equal to a string (inversed operands)' do
@@ -43,15 +45,10 @@ describe Parslet::Slice do
       end
 
       it 'is not eql to a string' do
-        # For Opal we have redefined inspect to return the string itself
-        skip if RUBY_ENGINE == 'opal'
-
         slice.should_not eql('foobar')
       end
 
       it 'does not hash to the same number' do
-        # In Opal, the hash of a string is the same as the string itself when we redefined inspect
-        skip if RUBY_ENGINE == 'opal'
         slice.hash.should_not == 'foobar'.hash
       end
     end
@@ -69,7 +66,7 @@ describe Parslet::Slice do
 
       context 'when constructed with a source' do
         let(:cache) { double(:cache, line_and_column: [13, 14]) }
-        let(:slice) { cslice('foobar', 40, cache) }
+        let(:slice) { cslice('foobar', 40, 40, cache) }
 
         it 'returns proper line and column' do
           slice.line_and_column.should == [13, 14]
@@ -103,7 +100,7 @@ describe Parslet::Slice do
       describe '<- #+' do
         subject { slice + other }
 
-        let(:other) { cslice('baz', 10) }
+        let(:other) { cslice("baz", 10, 10) }
 
         it 'concats like string does' do
           subject.size.should == 9
@@ -128,13 +125,13 @@ describe Parslet::Slice do
 
       describe 'cast to Float' do
         it 'returns a float' do
-          Float(cslice('1.345', 11)).should == 1.345
+          Float(cslice('1.345', 11, 11)).should == 1.345
         end
       end
 
       describe 'cast to Integer' do
         it 'casts to integer as a string would' do
-          s = cslice('1234', 40)
+          s = cslice('1234', 40, 40)
           Integer(s).should == 1234
           s.to_i.should == 1234
         end
@@ -175,7 +172,7 @@ describe Parslet::Slice do
       end
 
       context 'when storing a line cache' do
-        let(:slice) { cslice('foobar', 40, Parslet::Source::LineCache.new) }
+        let(:slice) { cslice('foobar', 40, 40, Parslet::Source::LineCache.new) }
 
         it 'serializes' do
           Marshal.dump(slice)

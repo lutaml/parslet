@@ -1,5 +1,3 @@
-# Encoding: UTF-8
-
 require 'spec_helper'
 
 describe Parslet::Position do
@@ -10,5 +8,8 @@ describe Parslet::Position do
   end
   it 'should have a bytepos of 4' do
     expect(position.bytepos).to eq(4)
+  end
+  it 'uses the precomputed charpos when given' do
+    expect(described_class.new('öäüö', 4, 9).charpos).to eq(9)
   end
 end
