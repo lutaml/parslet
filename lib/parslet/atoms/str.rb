@@ -1,7 +1,7 @@
-# Matches a string of characters. 
+# Matches a string of characters.
 #
-# Example: 
-# 
+# Example:
+#
 #   str('foo') # matches 'foo'
 #
 class Parslet::Atoms::Str < Parslet::Atoms::Base
@@ -20,23 +20,28 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
       failed: "Expected #{str.inspect}, but got "
     }
   end
-  
+
   def try(source, context, consume_all)
     return succ(source.consume(@len)) if source.matches?(@pat)
-    
+
     # Input ending early:
     return context.err(self, source, error_msgs[:premature]) \
       if source.chars_left<@len
-    
-    # Expected something, but got something else instead:  
-    error_pos = source.pos  
+
+    # Expected something, but got something else instead:
+    error_pos = source.pos
     return context.err_at(
-      self, source, 
-      [error_msgs[:failed], source.consume(@len)], error_pos) 
+      self, source,
+      [error_msgs[:failed], source.consume(@len)], error_pos)
   end
-  
+
   def to_s_inner(prec)
     "'#{str}'"
   end
-end
 
+  # String matching is already very fast (regex match).
+  # Caching adds overhead without benefit for such simple operations.
+  def cached?
+    false
+  end
+end

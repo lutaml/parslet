@@ -2,7 +2,7 @@
 # character at a time. Useful members of this family are: <code>character
 # ranges, \\w, \\d, \\r, \\n, ...</code>
 #
-# Example: 
+# Example:
 #
 #   match('[a-z]')  # matches a-z
 #   match('\s')     # like regexps: matches space characters
@@ -25,11 +25,11 @@ class Parslet::Atoms::Re < Parslet::Atoms::Base
 
   def try(source, context, consume_all)
     return succ(source.consume(1)) if source.matches?(@re)
-    
+
     # No string could be read
     return context.err(self, source, error_msgs[:premature]) \
       if source.chars_left < 1
-        
+
     # No match
     return context.err(self, source, error_msgs[:failed])
   end
@@ -37,5 +37,10 @@ class Parslet::Atoms::Re < Parslet::Atoms::Base
   def to_s_inner(prec)
     match.inspect[1..-2]
   end
-end
 
+  # Regex matching is already very fast (single character match).
+  # Caching adds overhead without benefit for such simple operations.
+  def cached?
+    false
+  end
+end
