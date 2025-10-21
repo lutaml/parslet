@@ -1,6 +1,6 @@
 # A sequence of parslets, matched from left to right. Denoted by '>>'
 #
-# Example: 
+# Example:
 #
 #   str('a') >> str('b')  # matches 'a', then 'b'
 #
@@ -17,30 +17,34 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
       failed: "Failed to match sequence (#{inspect})"
     }
   end
-  
+
   def >>(parslet)
     self.class.new(* @parslets+[parslet])
   end
-  
+
   def try(source, context, consume_all)
-    # Presize an array
+    # Optimize: Use simple integer loop instead of each_with_index
+    # This avoids the overhead of iterator methods and block calls
     result = Array.new(parslets.size + 1)
     result[0] = :sequence
-    
-    parslets.each_with_index do |p, idx|
-      child_consume_all = consume_all && (idx == parslets.size-1)
-      success, value = p.apply(source, context, child_consume_all) 
+
+    last_idx = parslets.size - 1
+    i = 0
+    while i <= last_idx
+      child_consume_all = consume_all && (i == last_idx)
+      success, value = parslets[i].apply(source, context, child_consume_all)
 
       unless success
         return context.err(self, source, error_msgs[:failed], [value])
       end
 
-      result[idx+1] = value
+      result[i+1] = value
+      i += 1
     end
-    
+
     return succ(result)
   end
-      
+
   precedence SEQUENCE
   def to_s_inner(prec)
     parslets.map { |p| p.to_s(prec) }.join(' ')
