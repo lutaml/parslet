@@ -23,6 +23,10 @@ module Parslet
       (1..10).each { |n| @re_cache[n] = /(.|$){#{n}}/m }
       @re_cache.default_proc = proc { |h,k| h[k] = /(.|$){#{k}}/m }
 
+      # Cache Position objects to avoid repeated allocation
+      # Positions are frequently recreated at the same byte positions
+      @pos_cache = {}
+
       @line_cache = LineCache.new
       @line_cache.scan_for_line_endings(0, str)
     end
@@ -74,13 +78,20 @@ module Parslet
     # @note Please be aware of encodings at this point.
     #
     def pos
-      if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'opal'
-        # In Opal, @str.pos is character position and @str.charpos is byte position
-        # So we need to swap them for Position.new(string, bytepos, charpos)
-        Position.new(@str.string, @str.charpos, @str.pos)
-      else
-        # In Ruby, @str.pos is byte position and @str.charpos is character position
-        Position.new(@str.string, @str.pos, @str.charpos)
+      # Cache Position objects by byte position to avoid repeated allocation
+      # Most parses revisit the same positions multiple times
+      current_bytepos = @str.pos
+
+      @pos_cache.fetch(current_bytepos) do
+        pos_obj = if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'opal'
+          # In Opal, @str.pos is character position and @str.charpos is byte position
+          # So we need to swap them for Position.new(string, bytepos, charpos)
+          Position.new(@str.string, @str.charpos, @str.pos)
+        else
+          # In Ruby, @str.pos is byte position and @str.charpos is character position
+          Position.new(@str.string, current_bytepos, @str.charpos)
+        end
+        @pos_cache[current_bytepos] = pos_obj
       end
     end
     def bytepos
