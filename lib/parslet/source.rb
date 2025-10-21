@@ -6,26 +6,28 @@ require 'parslet/position'
 require 'parslet/source/line_cache'
 
 module Parslet
-  # Wraps the input string for parslet. 
+  # Wraps the input string for parslet.
   #
   class Source
     def initialize(str)
       raise(
-        ArgumentError, 
+        ArgumentError,
         "Must construct Source with a string like object."
       ) unless str.respond_to?(:to_str)
 
       @str = StringScanner.new(str)
 
-      # maps 1 => /./m, 2 => /../m, etc...
-      @re_cache = Hash.new { |h,k| 
-        h[k] = /(.|$){#{k}}/m }
+      # Pre-populate regex cache for common small patterns (1-10 chars)
+      # This avoids repeated regex compilation for the most common cases
+      @re_cache = {}
+      (1..10).each { |n| @re_cache[n] = /(.|$){#{n}}/m }
+      @re_cache.default_proc = proc { |h,k| h[k] = /(.|$){#{k}}/m }
 
       @line_cache = LineCache.new
       @line_cache.scan_for_line_endings(0, str)
     end
-  
-    # Checks if the given pattern matches at the current input position. 
+
+    # Checks if the given pattern matches at the current input position.
     #
     # @param pattern [Regexp] pattern to check for
     # @return [Boolean] true if the pattern matches at #pos
@@ -34,30 +36,30 @@ module Parslet
       @str.match?(pattern)
     end
     alias match matches?
-    
+
     # Consumes n characters from the input, returning them as a slice of the
-    # input. 
+    # input.
     #
     def consume(n)
       position = self.pos
       slice_str = @str.scan(@re_cache[n])
       slice = Parslet::Slice.new(
-        position, 
+        position,
         slice_str,
         @line_cache)
 
       return slice
     end
-    
-    # Returns how many chars remain in the input. 
+
+    # Returns how many chars remain in the input.
     #
     def chars_left
       @str.rest_size
     end
 
-    # Returns how many chars there are between current position and the 
-    # string given. If the string given doesn't occur in the source, then 
-    # the remaining chars (#chars_left) are returned. 
+    # Returns how many chars there are between current position and the
+    # string given. If the string given doesn't occur in the source, then
+    # the remaining chars (#chars_left) are returned.
     #
     # @return [Fixnum] count of chars until str or #chars_left
     #
@@ -66,19 +68,26 @@ module Parslet
       return chars_left unless slice_str
       return slice_str.size - str.size
     end
-    
-    # Position of the parse as a character offset into the original string. 
+
+    # Position of the parse as a character offset into the original string.
     #
-    # @note Please be aware of encodings at this point. 
+    # @note Please be aware of encodings at this point.
     #
     def pos
-      Position.new(@str.string, @str.pos, @str.charpos)
+      if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'opal'
+        # In Opal, @str.pos is character position and @str.charpos is byte position
+        # So we need to swap them for Position.new(string, bytepos, charpos)
+        Position.new(@str.string, @str.charpos, @str.pos)
+      else
+        # In Ruby, @str.pos is byte position and @str.charpos is character position
+        Position.new(@str.string, @str.pos, @str.charpos)
+      end
     end
     def bytepos
       @str.pos
     end
 
-    # @note Please be aware of encodings at this point. 
+    # @note Please be aware of encodings at this point.
     #
     def bytepos=(n)
       @str.pos = n
@@ -87,7 +96,7 @@ module Parslet
 
     # Returns a <line, column> tuple for the given position. If no position is
     # given, line/column information is returned for the current position
-    # given by #pos. 
+    # given by #pos.
     #
     def line_and_column(position=nil)
       @line_cache.line_and_column(position || self.bytepos)
