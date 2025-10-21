@@ -1,8 +1,8 @@
-# Names a match to influence tree construction. 
+# Names a match to influence tree construction.
 #
-# Example: 
+# Example:
 #
-#   str('foo')            # will return 'foo', 
+#   str('foo')            # will return 'foo',
 #   str('foo').as(:foo)   # will return :foo => 'foo'
 #
 class Parslet::Atoms::Named < Parslet::Atoms::Base
@@ -12,7 +12,7 @@ class Parslet::Atoms::Named < Parslet::Atoms::Base
 
     @parslet, @name = parslet, name
   end
-  
+
   def apply(source, context, consume_all)
     success, value = result = parslet.apply(source, context, consume_all)
 
@@ -21,7 +21,13 @@ class Parslet::Atoms::Named < Parslet::Atoms::Base
       produce_return_value(
         value))
   end
-  
+
+  # Named is just a thin wrapper that delegates to the underlying parslet.
+  # The underlying parslet is already cached, so caching the wrapper is redundant.
+  def cached?
+    false
+  end
+
   def to_s_inner(prec)
     "#{name}:#{parslet.to_s(prec)}"
   end
