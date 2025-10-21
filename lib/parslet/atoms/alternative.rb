@@ -1,23 +1,23 @@
 
 # Alternative during matching. Contains a list of parslets that is tried each
-# one in turn. Only fails if all alternatives fail. 
+# one in turn. Only fails if all alternatives fail.
 #
-# Example: 
-# 
+# Example:
+#
 #   str('a') | str('b')   # matches either 'a' or 'b'
 #
 class Parslet::Atoms::Alternative < Parslet::Atoms::Base
   attr_reader :alternatives
-  
+
   # Constructs an Alternative instance using all given parslets in the order
-  # given. This is what happens if you call '|' on existing parslets, like 
-  # this: 
+  # given. This is what happens if you call '|' on existing parslets, like
+  # this:
   #
   #   str('a') | str('b')
   #
   def initialize(*alternatives)
     super()
-    
+
     @alternatives = alternatives
   end
 
@@ -34,15 +34,20 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
   end
 
   def try(source, context, consume_all)
-    errors = alternatives.map { |a|
+    # Optimize: Don't allocate error array until we know all alternatives fail
+    # This saves significant allocation overhead when early alternatives succeed
+    errors = nil
+
+    alternatives.each do |a|
       success, value = result = a.apply(source, context, consume_all)
       return result if success
-      
-      # Aggregate all errors
-      value
-    }
-    
-    # If we reach this point, all alternatives have failed. 
+
+      # Lazily allocate errors array only if needed
+      errors ||= []
+      errors << value
+    end
+
+    # If we reach this point, all alternatives have failed.
     context.err(self, source, error_msg, errors)
   end
 
