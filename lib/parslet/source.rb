@@ -45,6 +45,15 @@ module Parslet
     # input.
     #
     def consume(n)
+      # Fast path for single character (very common case)
+      # Avoids regex lookup and match overhead
+      if n == 1
+        position = self.pos
+        char = @str.getch
+        return Parslet::Slice.new(position, char || '', @line_cache)
+      end
+
+      # Multi-character consumption uses regex
       position = self.pos
       slice_str = @str.scan(@re_cache[n])
       slice = Parslet::Slice.new(
