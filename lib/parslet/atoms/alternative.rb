@@ -26,7 +26,15 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
   # all here. This reduces the number of objects created.
   #+++
   def |(parslet)
-    self.class.new(*@alternatives + [parslet])
+    # Phase 25: Alternative Flattening (similar to Phase 21 for Sequence)
+    # Flatten nested alternatives: (A | B) | C becomes Alternative(A, B, C)
+    # instead of Alternative(Alternative(A, B), C)
+    new_alts = if parslet.is_a?(Parslet::Atoms::Alternative)
+      @alternatives + parslet.alternatives
+    else
+      @alternatives + [parslet]
+    end
+    self.class.new(*new_alts)
   end
 
   def error_msg
