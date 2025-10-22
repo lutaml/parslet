@@ -49,12 +49,17 @@ module Parslet::Atoms
       return result
     end
 
+    # Pre-allocated constants to avoid repeated array allocations
+    # These are the most common return values during parsing
+    SUCCESS_NIL = [true, nil].freeze
+    ERROR_NIL = [false, nil].freeze
+
     # Report an error at a given position.
     # @see ErrorReporter
     #
     def err_at(*args)
       return [false, @reporter.err_at(*args)] if @reporter
-      return [false, nil]
+      ERROR_NIL
     end
 
     # Report an error.
@@ -62,15 +67,19 @@ module Parslet::Atoms
     #
     def err(*args)
       return [false, @reporter.err(*args)] if @reporter
-      return [false, nil]
+      ERROR_NIL
     end
 
     # Report a successful parse.
     # @see ErrorReporter::Contextual
     #
     def succ(*args)
-      return [true, @reporter.succ(*args)] if @reporter
-      return [true, nil]
+      # The default error reporter (Tree) has an empty succ method that returns nil
+      # So for the common case (no reporter or default reporter), use pre-allocated constant
+      return SUCCESS_NIL unless @reporter
+      result = @reporter.succ(*args)
+      return SUCCESS_NIL if result.nil?
+      [true, result]
     end
 
     # Returns the current captures made on the input (see
