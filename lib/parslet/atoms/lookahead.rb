@@ -24,27 +24,22 @@ class Parslet::Atoms::Lookahead < Parslet::Atoms::Base
   end
 
   def try(source, context, consume_all)
+    # Phase 23: Lookahead position restore optimization
+    # Always restore position after lookahead, simplify logic
     rewind_pos = source.bytepos
 
     success, _ = bound_parslet.apply(source, context, consume_all)
 
-    # Fast path: success case for positive lookahead (most common)
-    if positive
-      if success
-        source.bytepos = rewind_pos
-        return succ(nil)
-      end
-      # Error case - need position for error reporting
-      source.bytepos = rewind_pos
-      return context.err_at(self, source, error_msgs[:positive], source.pos)
-    else
-      if success
-        source.bytepos = rewind_pos
-        return context.err_at(self, source, error_msgs[:negative], source.pos)
-      end
-      source.bytepos = rewind_pos
-      return succ(nil)
-    end
+    # Always restore position - lookahead never consumes input
+    source.bytepos = rewind_pos
+
+    # Positive lookahead: success when parslet matches
+    return succ(nil) if positive && success
+    return context.err_at(self, source, error_msgs[:positive], source.pos) if positive
+
+    # Negative lookahead: success when parslet fails
+    return context.err_at(self, source, error_msgs[:negative], source.pos) if success
+    return succ(nil)
   end
 
   precedence LOOKAHEAD
