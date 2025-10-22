@@ -31,7 +31,7 @@ describe 'Result of a Parslet#parse' do
     ].each do |parslet, input, result|
       context parslet.inspect.to_s do
         it "parses \"#{input}\" into \"#{result}\"" do
-          expect(parslet.parse(input)).to eq(result)
+          expect(strip_positions(parslet.parse(input))).to eq(result)
         end
       end
     end

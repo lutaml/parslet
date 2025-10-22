@@ -45,6 +45,9 @@ describe Parslet::Slice do
       end
 
       it 'is not eql to a string' do
+        # In Opal, eql? must handle String comparison for Hash/Array equality
+        skip if RUBY_ENGINE == 'opal'
+
         slice.should_not eql('foobar')
       end
 

@@ -13,3 +13,5 @@ pkg
 rdoc
 .DS_Store
 tags
+benchmark/*
+/*.md

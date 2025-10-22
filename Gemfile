@@ -7,6 +7,7 @@ gemspec
 gem "base64"
 gem "benchmark-ips"
 gem "mathn" # For the mathn compatibility test only
+gem "memory_profiler"
 gem "racc"
 gem "rake"
 gem "rdoc"
@@ -14,6 +15,8 @@ gem "rspec"
 gem "rubocop"
 gem "rubocop-performance"
 gem "rubocop-rspec"
+gem "ruby-prof"
+gem "stackprof"
 
 # AE is needed for Opal compatibility, see spec/support/opal.rb.erb
 gem "ae"
