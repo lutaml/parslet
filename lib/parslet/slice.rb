@@ -31,15 +31,21 @@ class Parslet::Slice
     @position = position
     @str = string
     @line_cache = line_cache
+    @offset = nil  # Lazy cache for offset
   end
 
   def offset
-    @position.charpos
+    # Cache offset since it's frequently accessed
+    @offset ||= @position.charpos
   end
 
   # Compares slices to other slices or strings.
+  # Fast path: Compare strings directly, most common case
   #
   def ==(other)
+    # Fast path: direct string comparison
+    return str == other if other.is_a?(String)
+    # Slice to Slice comparison
     return str == other.str if other.is_a?(Parslet::Slice)
     str == other
   end
