@@ -715,12 +715,271 @@ Expected gains from full implementation: **10-50x total improvement** from basel
 * Fast Ruby: https://github.com/JuanitoFatas/fast-ruby[Fast Ruby Patterns]
 * Ruby Performance: https://www.rubyguides.com/ruby-performance/[Ruby Performance Guide]
 
+== Phase 17: Lookahead Optimization
+
+=== Principle
+
+Eliminate Ruby's `ensure` block overhead and optimize the success path (most common case) by explicit position restoration.
+
+=== Implementation
+
+[source,ruby]
+----
+# lib/parslet/atoms/lookahead.rb
+def try(source, context, consume_all)
+  rewind_pos = source.bytepos
+
+  success, _ = bound_parslet.apply(source, context, consume_all)
+
+  # Fast path: success case for positive lookahead (most common)
+  if positive
+    if success
+      source.bytepos = rewind_pos
+      return succ(nil)
+    end
+    source.bytepos = rewind_pos
+    return context.err_at(self, source, error_msgs[:positive], source.pos)
+  else
+    # Negative lookahead logic
+  end
+end
+----
+
+=== Reason
+
+Ruby's `ensure` blocks add overhead:
+* Extra stack frame for exception handling
+* Slower execution path even when no exceptions occur
+* Position calculation done eagerly even when not needed for errors
+
+Explicit restoration:
+* Eliminates ensure overhead
+* Optimizes success path (no error position calculation)
+* Cleaner control flow
+
+=== Example
+
+For `str('foo').present?` used 1000 times:
+
+* **Before**: ensure block executed 1000 times
+* **After**: Direct position restoration
+* **Savings**: Eliminated exception handling overhead
+
+=== When It Matters
+
+* Grammars with many lookahead assertions
+* Positive lookaheads (most common)
+* Performance-critical parsing
+
+=== Sources
+
+* Ruby ensure overhead: https://blog.appsignal.com/2018/03/13/ruby-magic-blocks-procs-and-lambdas.html[Ruby Blocks Performance]
+* Control flow optimization
+
+'''
+
+== Phase 17: Infix Expression Optimization
+
+=== Principle
+
+Inline helper methods to reduce function call overhead in the precedence climbing algorithm.
+
+=== Implementation
+
+[source,ruby]
+----
+# lib/parslet/atoms/infix.rb
+def precedence_climb(source, context, consume_all, current_prec=1, needs_element=false)
+  # ... parsing logic ...
+
+  if prec >= current_prec
+    # Inline: next_prec = (assoc == :left) ? prec+1 : prec
+    result << op_match
+    result << precedence_climb(
+      source, context, consume_all,
+      (assoc == :left) ? prec+1 : prec, true)
+  else
+    source.bytepos = op_pos
+    # Inline unwrap helper
+    return result.size == 1 ? result.first : result
+  end
+
+  # Inline unwrap at end
+  return result.size == 1 ? result.first : result
+end
+----
+
+=== Reason
+
+Helper method calls add overhead:
+* Function call/return overhead
+* Stack frame allocation
+* Parameter passing
+
+Inlining reduces:
+* Number of method calls
+* Stack depth
+* Overall execution time
+
+=== Example
+
+For parsing `1 + 2 * 3 - 4` repeatedly:
+
+* **Before**: `unwrap` called 2x per parse, `next_prec` calculation in separate line
+* **After**: Inline ternary operations
+* **Savings**: Eliminated helper method overhead
+
+=== When It Matters
+
+* Expression parsing (arithmetic, boolean, etc.)
+* Deeply nested expressions
+* High-frequency infix operations
+
+=== Sources
+
+* Precedence climbing: http://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing/[Precedence Climbing]
+* Inline expansion optimization
+
+'''
+
+== Phase 17: Slice Optimization
+
+=== Principle
+
+Cache frequently-accessed offset calculation and optimize equality comparisons with fast paths.
+
+=== Implementation
+
+[source,ruby]
+----
+# lib/parslet/slice.rb
+def initialize(position, string, line_cache = nil)
+  @position = position
+  @str = string
+  @line_cache = line_cache
+  @offset = nil  # Lazy cache for offset
+end
+
+def offset
+  # Cache offset since it's frequently accessed
+  @offset ||= @position.charpos
+end
+
+def ==(other)
+  # Fast path: direct string comparison (most common)
+  return str == other if other.is_a?(String)
+  # Slice to Slice comparison
+  return str == other.str if other.is_a?(Parslet::Slice)
+  str == other
+end
+----
+
+=== Reason
+
+Offset calculation involves:
+* Method call to Position#charpos
+* Potential character position calculation
+* Repeated for same slice
+
+Caching eliminates:
+* Redundant calculations
+* Method call overhead
+* Character position recalculation
+
+Equality optimization:
+* String comparison is most common case
+* Early return avoids unnecessary type checks
+* Reduced branching
+
+=== Example
+
+For a slice accessed 100 times:
+
+* **Before**: 100 offset calculations, generic equality checks
+* **After**: 1 calculation + 99 cache hits, fast-path equality
+* **Savings**: ~99% reduction in offset calculations
+
+=== When It Matters
+
+* Result processing (slices compared frequently)
+* Error reporting (offset accessed for line/column)
+* Large parse trees with many slices
+
+=== Sources
+
+* Lazy evaluation pattern
+* Memoization
+* Fast-path optimization
+
+'''
+
+== Phase 17: Result Flattening Optimization
+
+=== Principle
+
+Add fast path for single-element lists in the foldl helper to avoid unnecessary iteration.
+
+=== Implementation
+
+[source,ruby]
+----
+# lib/parslet/atoms/can_flatten.rb
+def foldl(list, &block)
+  len = list.size
+  return '' if len == 0
+  return list[0] if len == 1  # Fast path for single element
+
+  result = list[0]
+  i = 1
+  while i < len
+    result = block.call(result, list[i])
+    i += 1
+  end
+  result
+end
+----
+
+=== Reason
+
+Single-element lists are common in parsing:
+* Single captured value
+* One-item repetition results
+* Minimal sequences
+
+Fast path eliminates:
+* Loop setup overhead
+* Block call overhead
+* Unnecessary iteration
+
+=== Example
+
+For `str('x').as(:x)` returning single slice:
+
+* **Before**: Loop executes, block never called but overhead remains
+* **After**: Direct return of single element
+* **Savings**: Eliminated all iteration overhead
+
+=== When It Matters
+
+* Parsers with many single-value captures
+* Minimal repetitions (repeat(1,1))
+* Simple value extraction
+
+=== Sources
+
+* Early return optimization
+* Loop elimination
+
+'''
+
 == Version History
 
 * **Phase 1-9**: Runtime optimizations (8.5x speedup)
 * **Phase 14**: Position-based cache eviction (14x memory reduction)
 * **Phase 15**: Selective memoization (improved cache efficiency)
 * **Phase 16**: Alternative fast paths (11.8% additional speedup)
+* **Phase 16**: Repetition fast paths (maintains performance)
+* **Phase 17**: Lookahead, Infix, Slice, CanFlatten optimizations
 * **Current**: 9.5x total speedup, >14x memory reduction
 
 ---
