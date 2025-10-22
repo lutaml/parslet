@@ -19,7 +19,14 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
   end
 
   def >>(parslet)
-    self.class.new(* @parslets+[parslet])
+    # Phase 21: Sequence Flattening
+    # Flatten nested sequences to reduce object creation and tree depth
+    # (A >> B) >> C becomes Sequence(A, B, C) instead of Sequence(Sequence(A, B), C)
+    if parslet.is_a?(Parslet::Atoms::Sequence)
+      self.class.new(* @parslets + parslet.parslets)
+    else
+      self.class.new(* @parslets + [parslet])
+    end
   end
 
   def try(source, context, consume_all)
