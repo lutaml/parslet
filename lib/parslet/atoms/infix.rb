@@ -8,7 +8,7 @@ class Parslet::Atoms::Infix < Parslet::Atoms::Base
     @operations = operations
     @reducer = reducer || lambda { |left, op, right| {l: left, o: op, r: right} }
   end
-  
+
   def try(source, context, consume_all)
     return catch(:error) {
       return succ(
@@ -43,18 +43,18 @@ class Parslet::Atoms::Infix < Parslet::Atoms::Base
 
   # A precedence climbing algorithm married to parslet, as described here
   #   http://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing/
-  # 
-  # @note Error handling in this routine is done by throwing :error and 
+  #
+  # @note Error handling in this routine is done by throwing :error and
   #       as a value the error to return to parslet. This avoids cluttering
-  #       the recursion logic here with parslet error handling. 
+  #       the recursion logic here with parslet error handling.
   #
   def precedence_climb(source, context, consume_all, current_prec=1, needs_element=false)
     result = []
 
-    # To even begin parsing an arithmetic expression, there needs to be 
-    # at least one @element. 
+    # To even begin parsing an arithmetic expression, there needs to be
+    # at least one @element.
     success, value = @element.apply(source, context, false)
-    
+
     unless success
       throw :error, context.err(self, source, "#{@element.inspect} was expected", [value])
     end
@@ -66,33 +66,31 @@ class Parslet::Atoms::Infix < Parslet::Atoms::Base
       op_pos = source.bytepos
       op_match, prec, assoc = match_operation(source, context, false)
 
-      # If no operator could be matched here, one of several cases 
-      # applies: 
+      # If no operator could be matched here, one of several cases
+      # applies:
       #
       # - end of file
       # - end of expression
       # - syntax error
-      # 
-      # We abort matching the expression here. 
+      #
+      # We abort matching the expression here.
       break unless op_match
 
       if prec >= current_prec
-        next_prec = (assoc == :left) ? prec+1 : prec
-
+        # Inline: next_prec = (assoc == :left) ? prec+1 : prec
         result << op_match
         result << precedence_climb(
-          source, context, consume_all, next_prec, true)
+          source, context, consume_all,
+          (assoc == :left) ? prec+1 : prec, true)
       else
         source.bytepos = op_pos
-        return unwrap(result)
+        # Inline unwrap
+        return result.size == 1 ? result.first : result
       end
     end
 
-    return unwrap(result)
-  end
-
-  def unwrap expr
-    expr.size == 1 ? expr.first : expr
+    # Inline unwrap
+    return result.size == 1 ? result.first : result
   end
 
   def match_operation(source, context, consume_all)
