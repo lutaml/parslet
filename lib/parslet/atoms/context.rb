@@ -13,6 +13,8 @@ module Parslet::Atoms
       @cache = Hash.new { |h, k| h[k] = {} }
       @reporter = reporter
       @captures = Parslet::Scope.new
+      @max_position = 0  # Track furthest position for cache eviction
+      @eviction_threshold = 200  # Evict positions more than 200 bytes behind
     end
 
     # Caches a parse answer for obj at source.pos. Applying the same parslet
@@ -30,6 +32,18 @@ module Parslet::Atoms
       end
 
       beg = source.bytepos
+
+      # Track furthest position and evict old cache entries
+      # In left-to-right parsing, positions far behind won't be revisited
+      if beg > @max_position
+        @max_position = beg
+
+        # Evict positions that are too far behind current position
+        # This prevents unbounded cache growth (O(n*m) memory issue in packrat)
+        # Evict every time we move forward to keep cache bounded
+        min_keep_pos = beg - @eviction_threshold
+        @cache.delete_if { |pos, _| pos < min_keep_pos }
+      end
 
       # Use Hash#fetch for single hash operation instead of lookup + set
       entry = @cache[beg].fetch(obj.object_id) do
