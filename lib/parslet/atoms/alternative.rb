@@ -34,7 +34,25 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
   end
 
   def try(source, context, consume_all)
-    # Optimize: Don't allocate error array until we know all alternatives fail
+    # Fast paths for common alternative sizes (avoid iteration overhead)
+    case alternatives.size
+    when 2
+      success, value = alternatives[0].apply(source, context, consume_all)
+      return [success, value] if success
+      success2, value2 = alternatives[1].apply(source, context, consume_all)
+      return [success2, value2] if success2
+      return context.err(self, source, error_msg, [value, value2])
+    when 3
+      success, value = alternatives[0].apply(source, context, consume_all)
+      return [success, value] if success
+      success2, value2 = alternatives[1].apply(source, context, consume_all)
+      return [success2, value2] if success2
+      success3, value3 = alternatives[2].apply(source, context, consume_all)
+      return [success3, value3] if success3
+      return context.err(self, source, error_msg, [value, value2, value3])
+    end
+
+    # General case: Optimize by not allocating error array until we know all alternatives fail
     # This saves significant allocation overhead when early alternatives succeed
     errors = nil
 
