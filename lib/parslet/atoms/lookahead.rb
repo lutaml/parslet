@@ -1,16 +1,16 @@
-# Either positive or negative lookahead, doesn't consume its input. 
+# Either positive or negative lookahead, doesn't consume its input.
 #
-# Example: 
+# Example:
 #
 #   str('foo').present? # matches when the input contains 'foo', but leaves it
 #
 class Parslet::Atoms::Lookahead < Parslet::Atoms::Base
   attr_reader :positive
   attr_reader :bound_parslet
-  
+
   def initialize(bound_parslet, positive=true)
     super()
-    
+
     # Model positive and negative lookahead by testing this flag.
     @positive = positive
     @bound_parslet = bound_parslet
@@ -22,27 +22,31 @@ class Parslet::Atoms::Lookahead < Parslet::Atoms::Base
       :negative => ["Input should not start with ", bound_parslet]
     }
   end
-  
+
   def try(source, context, consume_all)
-    rewind_pos  = source.bytepos
-    error_pos   = source.pos
+    rewind_pos = source.bytepos
 
     success, _ = bound_parslet.apply(source, context, consume_all)
-    
+
+    # Fast path: success case for positive lookahead (most common)
     if positive
-      return succ(nil) if success
-      return context.err_at(self, source, error_msgs[:positive], error_pos)
+      if success
+        source.bytepos = rewind_pos
+        return succ(nil)
+      end
+      # Error case - need position for error reporting
+      source.bytepos = rewind_pos
+      return context.err_at(self, source, error_msgs[:positive], source.pos)
     else
-      return succ(nil) unless success
-      return context.err_at(self, source, error_msgs[:negative], error_pos)
+      if success
+        source.bytepos = rewind_pos
+        return context.err_at(self, source, error_msgs[:negative], source.pos)
+      end
+      source.bytepos = rewind_pos
+      return succ(nil)
     end
-    
-  # This is probably the only parslet that rewinds its input in #try.
-  # Lookaheads NEVER consume their input, even on success, that's why. 
-  ensure 
-    source.bytepos = rewind_pos
   end
-  
+
   precedence LOOKAHEAD
   def to_s_inner(prec)
     @char = positive ? '&' : '!'
