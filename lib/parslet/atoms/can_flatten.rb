@@ -49,13 +49,15 @@ module Parslet::Atoms
     end
 
     # Lisp style fold left where the first element builds the basis for
-    # an inject.
+    # an inject. Optimized with early return and reduced method calls.
     #
     def foldl(list, &block)
-      return '' if list.empty?
+      len = list.size
+      return '' if len == 0
+      return list[0] if len == 1  # Fast path for single element
+
       result = list[0]
       i = 1
-      len = list.size
       while i < len
         result = block.call(result, list[i])
         i += 1
