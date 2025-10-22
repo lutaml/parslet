@@ -5,13 +5,6 @@ require 'open3'
 # (Some other specs utilize the inspect of inner objects outside example/*.rb expections)
 # The behavior of comparison of #inspect as done in parselet behaves differently
 # in Opal and MRI.
-if RUBY_ENGINE == 'opal'
-  class Parslet::Slice
-    def inspect
-      str.inspect
-    end
-  end
-end
 
 describe 'Regression on' do
   Dir['example/*.rb'].each do |example|

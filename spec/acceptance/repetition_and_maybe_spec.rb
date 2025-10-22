@@ -6,7 +6,7 @@ describe 'Tree output' do
   def self.hash_examples(h)
     h.each do |atom, expected|
       it "converts #{atom} to #{expected.inspect}" do
-        expect(atom.parse(input)).to eq(expected)
+        expect(strip_positions(atom.parse(input))).to eq(expected)
       end
     end
   end

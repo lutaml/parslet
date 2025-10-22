@@ -329,27 +329,27 @@ describe Parslet do
   describe '<- #as(name)' do
     context "str('foo').as(:bar)" do
       it "returns :bar => 'foo'" do
-        str('foo').as(:bar).parse('foo').should == { bar: 'foo' }
+        strip_positions(str('foo').as(:bar).parse('foo')).should == { bar: 'foo' }
       end
     end
 
     context "match('[abc]').as(:name)" do
       it "returns :name => 'b'" do
-        match('[abc]').as(:name).parse('b').should == { name: 'b' }
+        strip_positions(match('[abc]').as(:name).parse('b')).should == { name: 'b' }
       end
     end
 
     context "match('[abc]').repeat.as(:name)" do
       it "returns collated result ('abc')" do
-        match('[abc]').repeat.as(:name)
-          .parse('abc').should == { name: 'abc' }
+        strip_positions(match('[abc]').repeat.as(:name)
+          .parse('abc')).should == { name: 'abc' }
       end
     end
 
     context "(str('a').as(:a) >> str('b').as(:b)).as(:c)" do
       it 'returns a hash of hashes' do
-        (str('a').as(:a) >> str('b').as(:b)).as(:c)
-          .parse('ab').should == {
+        strip_positions((str('a').as(:a) >> str('b').as(:b)).as(:c)
+          .parse('ab')).should == {
             c: {
               a: 'a',
               b: 'b',
@@ -360,8 +360,8 @@ describe Parslet do
 
     context "(str('a').as(:a) >> str('ignore') >> str('b').as(:b))" do
       it "correctlies flatten (leaving out 'ignore')" do
-        (str('a').as(:a) >> str('ignore') >> str('b').as(:b))
-          .parse('aignoreb').should ==
+        strip_positions((str('a').as(:a) >> str('ignore') >> str('b').as(:b))
+          .parse('aignoreb')).should ==
           {
             a: 'a',
             b: 'b',
@@ -371,8 +371,8 @@ describe Parslet do
 
     context "(str('a') >> str('ignore') >> str('b')) (no .as(...))" do
       it 'returns simply the original string' do
-        (str('a') >> str('ignore') >> str('b'))
-          .parse('aignoreb').should == 'aignoreb'
+        strip_positions((str('a') >> str('ignore') >> str('b'))
+          .parse('aignoreb')).should == 'aignoreb'
       end
     end
 
@@ -385,26 +385,26 @@ describe Parslet do
 
       it 'issues a warning that a key is being overwritten in merge' do
         expect(parslet).to receive(:warn).once
-        parslet.parse('ab').should == { a: 'b' }
+        strip_positions(parslet.parse('ab')).should == { a: 'b' }
       end
 
       it "returns :a => 'b'" do
         expect(parslet).to receive(:warn)
 
-        parslet.parse('ab').should == { a: 'b' }
+        strip_positions(parslet.parse('ab')).should == { a: 'b' }
       end
     end
 
     context "str('a').absent?" do
       it 'returns something in merge, even though it is nil' do
-        (str('a').absent? >> str('b').as(:b))
-          .parse('b').should == { b: 'b' }
+        strip_positions((str('a').absent? >> str('b').as(:b))
+          .parse('b')).should == { b: 'b' }
       end
     end
 
     context "str('a').as(:a).repeat" do
       it 'returns an array of subtrees' do
-        expect(str('a').as(:a).repeat.parse('aa')).to eq([{ a: 'a' }, { a: 'a' }])
+        expect(strip_positions(str('a').as(:a).repeat.parse('aa'))).to eq([{ a: 'a' }, { a: 'a' }])
       end
     end
   end

@@ -40,7 +40,23 @@ class Parslet::Slice
   # Compares slices to other slices or strings.
   #
   def ==(other)
+    return str == other.str if other.is_a?(Parslet::Slice)
     str == other
+  end
+
+  # Type-strict equality comparison.
+  # This only returns true for Slice-to-Slice comparison with equal content.
+  #
+  def eql?(other)
+    other.is_a?(Parslet::Slice) && str.eql?(other.str)
+  end
+
+  # Hash code for using Slices as hash keys.
+  # Incorporates both the string content and position to distinguish
+  # Slices from plain Strings and from Slices at different positions.
+  #
+  def hash
+    [str, offset].hash
   end
 
   # Match regular expressions.
