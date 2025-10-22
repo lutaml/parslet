@@ -22,11 +22,38 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
     # Phase 21: Sequence Flattening
     # Flatten nested sequences to reduce object creation and tree depth
     # (A >> B) >> C becomes Sequence(A, B, C) instead of Sequence(Sequence(A, B), C)
-    if parslet.is_a?(Parslet::Atoms::Sequence)
-      self.class.new(* @parslets + parslet.parslets)
+    new_parslets = if parslet.is_a?(Parslet::Atoms::Sequence)
+      @parslets + parslet.parslets
     else
-      self.class.new(* @parslets + [parslet])
+      @parslets + [parslet]
     end
+
+    # Phase 24: String Concatenation
+    # Merge adjacent Str atoms: str('a') >> str('b') becomes str('ab')
+    optimized = []
+    i = 0
+    while i < new_parslets.size
+      curr = new_parslets[i]
+
+      if curr.is_a?(Parslet::Atoms::Str)
+        # Collect consecutive Str atoms
+        concat_str = curr.str
+        j = i + 1
+        while j < new_parslets.size && new_parslets[j].is_a?(Parslet::Atoms::Str)
+          concat_str += new_parslets[j].str
+          j += 1
+        end
+
+        # If we merged multiple Str atoms, create a new combined Str
+        optimized << (j > i + 1 ? Parslet::Atoms::Str.new(concat_str) : curr)
+        i = j
+      else
+        optimized << curr
+        i += 1
+      end
+    end
+
+    self.class.new(*optimized)
   end
 
   def try(source, context, consume_all)
