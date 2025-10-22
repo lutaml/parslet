@@ -30,6 +30,35 @@ class Parslet::Atoms::Repetition < Parslet::Atoms::Base
   end
 
   def try(source, context, consume_all)
+    # Fast path for .maybe (min=0, max=1) - very common case
+    if min == 0 && max == 1
+      success, value = parslet.apply(source, context, false)
+      return succ([@tag, value]) if success
+      return succ([@tag])
+    end
+
+    # Fast path for exact count (min == max)
+    if min == max && max && max <= 3
+      case max
+      when 1
+        success, value = parslet.apply(source, context, consume_all)
+        return success ? succ([@tag, value]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [value])
+      when 2
+        success, v1 = parslet.apply(source, context, false)
+        return context.err_at(self, source, error_msgs[:minrep], source.pos, [v1]) unless success
+        success, v2 = parslet.apply(source, context, consume_all)
+        return success ? succ([@tag, v1, v2]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v2])
+      when 3
+        success, v1 = parslet.apply(source, context, false)
+        return context.err_at(self, source, error_msgs[:minrep], source.pos, [v1]) unless success
+        success, v2 = parslet.apply(source, context, false)
+        return context.err_at(self, source, error_msgs[:minrep], source.pos, [v2]) unless success
+        success, v3 = parslet.apply(source, context, consume_all)
+        return success ? succ([@tag, v1, v2, v3]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v3])
+      end
+    end
+
+    # General case for variable or large repetitions
     occ = 0
     # Optimize: Pre-allocate array when max is known to avoid repeated expansions
     accum = max ? Array.new(max + 1) : [@tag]
