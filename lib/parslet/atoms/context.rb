@@ -15,6 +15,11 @@ module Parslet::Atoms
       @captures = Parslet::Scope.new
       @max_position = 0  # Track furthest position for cache eviction
       @eviction_threshold = 200  # Evict positions more than 200 bytes behind
+
+      # Selective memoization: track hit/miss rates to only cache beneficial parslets
+      @hit_counts = Hash.new(0)
+      @miss_counts = Hash.new(0)
+      @cache_threshold = 2  # Only cache if we've had 2+ hits
     end
 
     # Caches a parse answer for obj at source.pos. Applying the same parslet
@@ -32,6 +37,7 @@ module Parslet::Atoms
       end
 
       beg = source.bytepos
+      cache_key = obj.object_id
 
       # Track furthest position and evict old cache entries
       # In left-to-right parsing, positions far behind won't be revisited
@@ -45,21 +51,27 @@ module Parslet::Atoms
         @cache.delete_if { |pos, _| pos < min_keep_pos }
       end
 
-      # Use Hash#fetch for single hash operation instead of lookup + set
-      entry = @cache[beg].fetch(obj.object_id) do
-        result = obj.try(source, self, consume_all)
-        # Cache the result with the advance amount
-        @cache[beg][obj.object_id] = [result, source.bytepos - beg]
+      # Check if this parslet/position combo is already cached
+      if @cache[beg].key?(cache_key)
+        # Cache hit - track it
+        @hit_counts[cache_key] += 1
+        result, advance = @cache[beg][cache_key]
+        source.bytepos = beg + advance
         return result
       end
 
-      # Cache hit: entry is [result, advance]
-      result, advance = entry
+      # Cache miss - execute the parslet
+      @miss_counts[cache_key] += 1
+      result = obj.try(source, self, consume_all)
+      advance = source.bytepos - beg
 
-      # The data we're skipping here has been read before. (since it is in
-      # the cache) PLUS the actual contents are not interesting anymore since
-      # we know obj matches at beg. So skip reading.
-      source.bytepos = beg + advance
+      # Only cache if this parslet has shown it benefits from caching
+      # (has had multiple hits, or we're still learning about it)
+      total_attempts = @hit_counts[cache_key] + @miss_counts[cache_key]
+      if total_attempts <= @cache_threshold || @hit_counts[cache_key] > 0
+        @cache[beg][cache_key] = [result, advance]
+      end
+
       return result
     end
 
