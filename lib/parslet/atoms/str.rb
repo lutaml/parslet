@@ -45,18 +45,19 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
       return context.err_at(self, source, [error_msgs[:failed], slice], error_pos)
     end
 
-    # Multi-character string: use regex matching
-    return succ(source.consume(@len)) if source.matches?(@pat)
+    # Multi-character string: use direct string comparison instead of regex
+    # This is faster than regex matching for literal strings
+    return context.err(self, source, error_msgs[:premature]) if source.chars_left < @len
 
-    # Input ending early:
-    return context.err(self, source, error_msgs[:premature]) \
-      if source.chars_left<@len
-
-    # Expected something, but got something else instead:
     error_pos = source.pos
-    return context.err_at(
-      self, source,
-      [error_msgs[:failed], source.consume(@len)], error_pos)
+    slice = source.consume(@len)
+
+    # Direct string comparison (much faster than regex)
+    return succ(slice) if slice.str == @str
+
+    # Failed to match - restore position and report error
+    source.bytepos = error_pos.bytepos
+    return context.err_at(self, source, [error_msgs[:failed], slice], error_pos)
   end
 
   def to_s_inner(prec)

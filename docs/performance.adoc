@@ -1140,6 +1140,90 @@ Character matches in `{"key":1}`:
 
 '''
 
+== Phase 19: Complete Regex Elimination from Str
+
+=== Principle
+
+Eliminate regex entirely from Str atom by using direct string comparison for all string lengths, not just single characters.
+
+=== Implementation
+
+[source,ruby]
+----
+# lib/parslet/atoms/str.rb
+def try(source, context, consume_all)
+  # Fast path for single-character strings
+  if @char
+    # ... single char logic with direct comparison
+  end
+
+  # Multi-character string: use direct string comparison instead of regex
+  # This is faster than regex matching for literal strings
+  return context.err(self, source, error_msgs[:premature]) if source.chars_left < @len
+
+  error_pos = source.pos
+  slice = source.consume(@len)
+
+  # Direct string comparison (much faster than regex)
+  return succ(slice) if slice.str == @str
+
+  # Failed to match - restore position and report error
+  source.bytepos = error_pos.bytepos
+  return context.err_at(self, source, [error_msgs[:failed], slice], error_pos)
+end
+----
+
+=== Reason
+
+**Regex overhead for literal string matching**:
+* Regex engine invocation
+* Pattern compilation and storage (even when cached)
+* Backtracking state management
+* Complex matching algorithm for simple equality check
+
+**Direct string comparison benefits**:
+* Simple equality operator (==)
+* No pattern matching overhead
+* No regex engine invocation
+* Optimized at C level in Ruby
+
+**Performance characteristics**:
+* String comparison: O(n) where n = string length, but very fast
+* Regex match: O(k×n) where k = pattern complexity, plus engine overhead
+
+=== Example
+
+For parsing `str('hello')` matching "hello world":
+
+* **Before**: Compile regex `/hello/`, invoke regex engine, match pattern
+* **After**: Direct string equality: `"hello" == "hello"`
+* **Savings**: Eliminated all regex overhead for literal string matching
+
+For a typical JSON parser with strings like:
+* `str('true')`, `str('false')`, `str('null')`
+* `str('{')`, `str('}')`, `str('[')`, `str(']')`
+* `str(':')`, `str(',')`, `str('"')`
+
+* **Before**: Each uses regex matching
+* **After**: All use direct string comparison
+* **Result**: 100% regex elimination from Str atom
+
+=== When It Matters
+
+* **All parsers** - Str is one of the most common atoms
+* Literal string matching (keywords, delimiters, operators)
+* Multi-character tokens ("true", "false", "null", "function", etc.)
+* Any grammar with string literals
+
+=== Sources
+
+* String equality is fundamentally faster than pattern matching
+* Regex engines designed for complex patterns, overkill for literals
+* Ruby String#== optimized at C level
+* https://blog.appsignal.com/2020/08/05/ruby-magic-patterns-in-ruby-regular-expressions.html[Ruby Regex Performance]
+
+'''
+
 == Version History
 
 * **Phase 1-9**: Runtime optimizations (8.5x speedup)
@@ -1150,7 +1234,8 @@ Character matches in `{"key":1}`:
 * **Phase 17**: Lookahead, Infix, Slice, CanFlatten optimizations
 * **Phase 18**: Str single-character optimization
 * **Phase 18**: Source single-character consumption optimization
-* **Current**: 9.5x total speedup, >14x memory reduction
+* **Phase 19**: Complete regex elimination from Str atom
+* **Current**: 9.5x+ total speedup, >14x memory reduction, 100% regex-free Str matching
 
 ---
 
