@@ -128,6 +128,45 @@ describe 'Automatic Rule Optimization' do
     end
   end
 
+  context 'combined optimizations' do
+    class CombinedOptParser < Parslet::Parser
+      optimize_rules!
+
+      rule(:combined) {
+        # Has both quantifier and sequence issues
+        (str('h') >> str('e') >> str('l') >> str('l') >> str('o')).repeat(1, 1) >>
+        str(' ') >>
+        (str('w') >> str('o') >> str('r') >> str('l') >> str('d')).repeat(1, 1)
+      }
+
+      root :combined
+    end
+
+    it 'applies both quantifier and sequence optimizations' do
+      parser = CombinedOptParser.new
+      # Should merge strings and unwrap repeat(1,1)
+      # Original: (Str('h') >> Str('e') >> ... >> Str('o')).repeat(1,1) >> Str(' ') >> (Str('w') >> ... >> Str('d')).repeat(1,1)
+      # After quantifier: Sequence(Str('h'), Str('e'), ..., Str('o')) >> Str(' ') >> Sequence(Str('w'), ..., Str('d'))
+      # After sequence: Str('hello') >> Str(' ') >> Str('world')
+      # Final merge: Str('hello world')
+
+      result = parser.combined.parse('hello world')
+      expect(result).to eq('hello world')
+    end
+
+    it 'produces same results as manual optimization' do
+      parser = CombinedOptParser.new
+
+      # Manual construction without optimization
+      manual = (str('h') >> str('e') >> str('l') >> str('l') >> str('o')).repeat(1, 1) >>
+               str(' ') >>
+               (str('w') >> str('o') >> str('r') >> str('l') >> str('d')).repeat(1, 1)
+
+      input = 'hello world'
+      expect(parser.combined.parse(input)).to eq(manual.parse(input))
+    end
+  end
+
   context 'edge cases' do
     class EdgeCaseParser < Parslet::Parser
       optimize_rules!
