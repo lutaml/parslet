@@ -112,6 +112,114 @@ module Parslet
       result
     end
 
+    # Simplifies sequences by flattening and merging adjacent strings
+    # Example: str('a') >> str('b') => str('ab')
+    #          (str('a') >> str('b')) >> str('c') => str('abc')
+    #
+    # This reduces:
+    # - Number of sequence elements
+    # - Method calls during parsing
+    # - Memory allocations
+    #
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify
+    # @return [Parslet::Atoms::Base] simplified parslet
+    def self.simplify_sequences(parslet)
+      # First simplify children recursively
+      simplified = simplify_sequence_children(parslet)
+
+      # If this is a sequence, apply optimizations
+      if simplified.is_a?(Parslet::Atoms::Sequence)
+        # Flatten nested sequences
+        flattened = flatten_nested_sequences(simplified.parslets)
+
+        # Merge adjacent strings
+        merged = merge_adjacent_strings(flattened)
+
+        # If only one element remains, unwrap the sequence
+        if merged.size == 1
+          return merged[0]
+        end
+
+        # Return optimized sequence if changed
+        if merged != simplified.parslets
+          return Parslet::Atoms::Sequence.new(*merged)
+        end
+      end
+
+      simplified
+    end
+
+    # Helper: Flatten nested sequences in an array of parslets
+    # @param parslets [Array<Parslet::Atoms::Base>] array of parslets
+    # @return [Array<Parslet::Atoms::Base>] flattened array
+    def self.flatten_nested_sequences(parslets)
+      result = []
+      parslets.each do |p|
+        if p.is_a?(Parslet::Atoms::Sequence)
+          result.concat(p.parslets)
+        else
+          result << p
+        end
+      end
+      result
+    end
+
+    # Helper: Recursively simplify children for sequence optimization
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
+    # @return [Parslet::Atoms::Base] parslet with simplified children
+    def self.simplify_sequence_children(parslet)
+      case parslet
+      when Parslet::Atoms::Sequence
+        new_parslets = parslet.parslets.map { |p| simplify_sequences(p) }
+        if new_parslets == parslet.parslets
+          parslet
+        else
+          Parslet::Atoms::Sequence.new(*new_parslets)
+        end
+
+      when Parslet::Atoms::Alternative
+        new_alternatives = parslet.alternatives.map { |p| simplify_sequences(p) }
+        if new_alternatives == parslet.alternatives
+          parslet
+        else
+          Parslet::Atoms::Alternative.new(*new_alternatives)
+        end
+
+      when Parslet::Atoms::Repetition
+        new_parslet = simplify_sequences(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Repetition.new(
+            new_parslet,
+            parslet.min,
+            parslet.max,
+            parslet.instance_variable_get(:@tag)
+          )
+        end
+
+      when Parslet::Atoms::Lookahead
+        new_bound = simplify_sequences(parslet.bound_parslet)
+        if new_bound.equal?(parslet.bound_parslet)
+          parslet
+        else
+          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
+        end
+
+      when Parslet::Atoms::Named
+        new_parslet = simplify_sequences(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Named.new(new_parslet, parslet.name)
+        end
+
+      else
+        # Leaf nodes - return as-is
+        parslet
+      end
+    end
+
     # Simplifies redundant quantifiers in a parslet tree
     # Example: str('a').repeat(1, 1) => str('a')
     #          str('a').repeat(0, 1).repeat(0, 1) => str('a').repeat(0, 1)

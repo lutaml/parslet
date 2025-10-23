@@ -293,4 +293,167 @@ describe Parslet::Optimizer do
       end
     end
   end
+
+  describe '.simplify_sequences' do
+    context 'string merging' do
+      it 'merges adjacent str atoms' do
+        # str('a') >> str('b') >> str('c') => str('abc')
+        sequence = str('a') >> str('b') >> str('c')
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        expect(result).to be_a(Parslet::Atoms::Str)
+        expect(result.str).to eq('abc')
+      end
+
+      it 'merges only adjacent strings' do
+        # str('a') >> str('b') >> match['x'] >> str('c') >> str('d')
+        # => str('ab') >> match['x'] >> str('cd')
+        sequence = str('a') >> str('b') >> match['x'] >> str('c') >> str('d')
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        expect(result).to be_a(Parslet::Atoms::Sequence)
+        expect(result.parslets.size).to eq(3)
+        expect(result.parslets[0].str).to eq('ab')
+        expect(result.parslets[1]).to be_a(Parslet::Atoms::Re)
+        expect(result.parslets[2].str).to eq('cd')
+      end
+
+      it 'handles empty strings' do
+        sequence = str('a') >> str('') >> str('b')
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        expect(result).to be_a(Parslet::Atoms::Str)
+        expect(result.str).to eq('ab')
+      end
+    end
+
+    context 'sequence flattening' do
+      it 'flattens nested sequences' do
+        # (str('a') >> str('b')) >> (str('c') >> str('d'))
+        # => str('abcd')
+        inner1 = str('a') >> str('b')
+        inner2 = str('c') >> str('d')
+        nested = inner1 >> inner2
+        result = Parslet::Optimizer.simplify_sequences(nested)
+
+        expect(result).to be_a(Parslet::Atoms::Str)
+        expect(result.str).to eq('abcd')
+      end
+
+      it 'flattens deeply nested sequences' do
+        # ((str('a') >> str('b')) >> str('c')) >> str('d')
+        # => str('abcd')
+        nested = ((str('a') >> str('b')) >> str('c')) >> str('d')
+        result = Parslet::Optimizer.simplify_sequences(nested)
+
+        expect(result).to be_a(Parslet::Atoms::Str)
+        expect(result.str).to eq('abcd')
+      end
+    end
+
+    context 'sequence unwrapping' do
+      it 'unwraps single-element sequences' do
+        # str('a') >> (nothing else) => str('a')
+        sequence = Parslet::Atoms::Sequence.new(str('a'))
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        expect(result).to be_a(Parslet::Atoms::Str)
+        expect(result.str).to eq('a')
+      end
+    end
+
+    context 'recursive simplification' do
+      it 'simplifies sequences in alternatives' do
+        # (str('a') >> str('b')) | (str('c') >> str('d'))
+        # => str('ab') | str('cd')
+        alt = (str('a') >> str('b')) | (str('c') >> str('d'))
+        result = Parslet::Optimizer.simplify_sequences(alt)
+
+        expect(result).to be_a(Parslet::Atoms::Alternative)
+        expect(result.alternatives[0]).to be_a(Parslet::Atoms::Str)
+        expect(result.alternatives[0].str).to eq('ab')
+        expect(result.alternatives[1]).to be_a(Parslet::Atoms::Str)
+        expect(result.alternatives[1].str).to eq('cd')
+      end
+
+      it 'simplifies sequences in repetitions' do
+        # (str('a') >> str('b')).repeat(2, 2)
+        # => str('ab').repeat(2, 2)
+        rep = (str('a') >> str('b')).repeat(2, 2)
+        result = Parslet::Optimizer.simplify_sequences(rep)
+
+        expect(result).to be_a(Parslet::Atoms::Repetition)
+        expect(result.parslet).to be_a(Parslet::Atoms::Str)
+        expect(result.parslet.str).to eq('ab')
+      end
+
+      it 'simplifies sequences in lookaheads' do
+        # (str('a') >> str('b')).present?
+        # => str('ab').present?
+        la = (str('a') >> str('b')).present?
+        result = Parslet::Optimizer.simplify_sequences(la)
+
+        expect(result).to be_a(Parslet::Atoms::Lookahead)
+        expect(result.bound_parslet).to be_a(Parslet::Atoms::Str)
+        expect(result.bound_parslet.str).to eq('ab')
+      end
+
+      it 'simplifies sequences in named parslets' do
+        # (str('a') >> str('b')).as(:test)
+        # => str('ab').as(:test)
+        named = (str('a') >> str('b')).as(:test)
+        result = Parslet::Optimizer.simplify_sequences(named)
+
+        expect(result).to be_a(Parslet::Atoms::Named)
+        expect(result.parslet).to be_a(Parslet::Atoms::Str)
+        expect(result.parslet.str).to eq('ab')
+      end
+    end
+
+    context 'semantic preservation' do
+      it 'produces same parse results after optimization' do
+        # Test that optimization doesn't change semantics
+        original = str('h') >> str('e') >> str('l') >> str('l') >> str('o')
+        optimized = Parslet::Optimizer.simplify_sequences(original)
+
+        input = 'hello'
+        expect(original.parse(input)).to eq(optimized.parse(input))
+      end
+
+      it 'preserves parsing with non-string elements' do
+        original = str('a') >> match['0-9'] >> str('b')
+        optimized = Parslet::Optimizer.simplify_sequences(original)
+
+        input = 'a5b'
+        expect(original.parse(input)).to eq(optimized.parse(input))
+      end
+    end
+
+    context 'edge cases' do
+      it 'handles sequences with only non-string elements' do
+        sequence = match['a'] >> match['b'] >> match['c']
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        # Should remain unchanged
+        expect(result).to be_a(Parslet::Atoms::Sequence)
+        expect(result.parslets.size).to eq(3)
+      end
+
+      it 'handles empty sequences' do
+        sequence = Parslet::Atoms::Sequence.new()
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        # Empty sequence stays as sequence (or could unwrap to nil)
+        expect(result).to be_a(Parslet::Atoms::Sequence)
+      end
+
+      it 'handles single string in sequence' do
+        sequence = Parslet::Atoms::Sequence.new(str('test'))
+        result = Parslet::Optimizer.simplify_sequences(sequence)
+
+        expect(result).to be_a(Parslet::Atoms::Str)
+        expect(result.str).to eq('test')
+      end
+    end
+  end
 end
