@@ -328,5 +328,137 @@ module Parslet
         parslet
       end
     end
+
+    # Simplifies choice/alternative patterns
+    # Example: Alternative(str('a'), str('a')) => str('a')
+    #          Alternative(str('a')) => str('a')
+    #          Alternative(Alternative(str('a'), str('b')), str('c')) => Alternative(str('a'), str('b'), str('c'))
+    #
+    # This reduces:
+    # - Number of alternatives to try
+    # - Duplicate work when alternatives match the same thing
+    # - Unnecessary Alternative wrapper for single choices
+    #
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify
+    # @return [Parslet::Atoms::Base] simplified parslet
+    def self.simplify_choices(parslet)
+      # First simplify children recursively
+      simplified = simplify_choice_children(parslet)
+
+      # If this is an alternative, apply optimizations
+      if simplified.is_a?(Parslet::Atoms::Alternative)
+        # Flatten nested alternatives
+        flattened = flatten_nested_alternatives(simplified.alternatives)
+
+        # Deduplicate alternatives
+        deduplicated = deduplicate_alternatives(flattened)
+
+        # If only one alternative remains, unwrap it
+        if deduplicated.size == 1
+          return deduplicated[0]
+        end
+
+        # Return optimized alternative if changed
+        if deduplicated != simplified.alternatives
+          return Parslet::Atoms::Alternative.new(*deduplicated)
+        end
+      end
+
+      simplified
+    end
+
+    # Helper: Flatten nested alternatives in an array of parslets
+    # @param alternatives [Array<Parslet::Atoms::Base>] array of alternatives
+    # @return [Array<Parslet::Atoms::Base>] flattened array
+    def self.flatten_nested_alternatives(alternatives)
+      result = []
+      alternatives.each do |alt|
+        if alt.is_a?(Parslet::Atoms::Alternative)
+          result.concat(alt.alternatives)
+        else
+          result << alt
+        end
+      end
+      result
+    end
+
+    # Helper: Remove duplicate alternatives from an array
+    # Uses structural equality to detect duplicates
+    # @param alternatives [Array<Parslet::Atoms::Base>] array of alternatives
+    # @return [Array<Parslet::Atoms::Base>] deduplicated array
+    def self.deduplicate_alternatives(alternatives)
+      return alternatives if alternatives.size < 2
+
+      # Build a hash to track seen alternatives
+      # We use to_s as a proxy for structural equality
+      seen = {}
+      result = []
+
+      alternatives.each do |alt|
+        key = alt.to_s
+        unless seen[key]
+          seen[key] = true
+          result << alt
+        end
+      end
+
+      result
+    end
+
+    # Helper: Recursively simplify children for choice optimization
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
+    # @return [Parslet::Atoms::Base] parslet with simplified children
+    def self.simplify_choice_children(parslet)
+      case parslet
+      when Parslet::Atoms::Sequence
+        new_parslets = parslet.parslets.map { |p| simplify_choices(p) }
+        if new_parslets == parslet.parslets
+          parslet
+        else
+          Parslet::Atoms::Sequence.new(*new_parslets)
+        end
+
+      when Parslet::Atoms::Alternative
+        new_alternatives = parslet.alternatives.map { |p| simplify_choices(p) }
+        if new_alternatives == parslet.alternatives
+          parslet
+        else
+          Parslet::Atoms::Alternative.new(*new_alternatives)
+        end
+
+      when Parslet::Atoms::Repetition
+        new_parslet = simplify_choices(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Repetition.new(
+            new_parslet,
+            parslet.min,
+            parslet.max,
+            parslet.instance_variable_get(:@tag)
+          )
+        end
+
+      when Parslet::Atoms::Lookahead
+        new_bound = simplify_choices(parslet.bound_parslet)
+        if new_bound.equal?(parslet.bound_parslet)
+          parslet
+        else
+          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
+        end
+
+      when Parslet::Atoms::Named
+        new_parslet = simplify_choices(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Named.new(new_parslet, parslet.name)
+        end
+
+      else
+        # Leaf nodes - return as-is
+        parslet
+      end
+    end
   end
 end
