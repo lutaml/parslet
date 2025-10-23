@@ -111,5 +111,114 @@ module Parslet
 
       result
     end
+
+    # Simplifies redundant quantifiers in a parslet tree
+    # Example: str('a').repeat(1, 1) => str('a')
+    #          str('a').repeat(0, 1).repeat(0, 1) => str('a').repeat(0, 1)
+    #
+    # This reduces:
+    # - Unnecessary method calls during parsing
+    # - Memory allocations for repetition tracking
+    # - Cache entries
+    #
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify
+    # @return [Parslet::Atoms::Base] simplified parslet
+    def self.simplify_quantifiers(parslet)
+      # Base case: if not a repetition, check children recursively
+      unless parslet.is_a?(Parslet::Atoms::Repetition)
+        return simplify_children(parslet)
+      end
+
+      # Simplify the child parslet first
+      inner = simplify_quantifiers(parslet.parslet)
+
+      # Case 1: repeat(1, 1) => unwrap (no repetition needed)
+      if parslet.min == 1 && parslet.max == 1
+        return inner
+      end
+
+      # Case 2: Nested repetitions - flatten if possible
+      # repeat(m1, M1).repeat(m2, M2) can sometimes be simplified
+      if inner.is_a?(Parslet::Atoms::Repetition)
+        # Special case: repeat(0, 1).repeat(0, 1) => repeat(0, 1) (idempotent)
+        if parslet.min == 0 && parslet.max == 1 &&
+           inner.min == 0 && inner.max == 1
+          return inner
+        end
+
+        # Special case: repeat(n, n).repeat(m, m) => repeat(n*m, n*m) for exact counts
+        if parslet.min == parslet.max && inner.min == inner.max &&
+           parslet.max && inner.max
+          new_count = parslet.min * inner.min
+          return Parslet::Atoms::Repetition.new(
+            inner.parslet,
+            new_count,
+            new_count,
+            parslet.instance_variable_get(:@tag)
+          )
+        end
+      end
+
+      # Return optimized repetition with simplified child
+      if inner.equal?(parslet.parslet)
+        # No change to child, return original
+        parslet
+      else
+        # Child was simplified, create new repetition with simplified child
+        Parslet::Atoms::Repetition.new(
+          inner,
+          parslet.min,
+          parslet.max,
+          parslet.instance_variable_get(:@tag)
+        )
+      end
+    end
+
+    # Helper: Recursively simplify children of composite parslets
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
+    # @return [Parslet::Atoms::Base] parslet with simplified children
+    def self.simplify_children(parslet)
+      case parslet
+      when Parslet::Atoms::Sequence
+        # Simplify each element in the sequence
+        new_parslets = parslet.parslets.map { |p| simplify_quantifiers(p) }
+        if new_parslets == parslet.parslets
+          parslet
+        else
+          Parslet::Atoms::Sequence.new(*new_parslets)
+        end
+
+      when Parslet::Atoms::Alternative
+        # Simplify each alternative
+        new_alternatives = parslet.alternatives.map { |p| simplify_quantifiers(p) }
+        if new_alternatives == parslet.alternatives
+          parslet
+        else
+          Parslet::Atoms::Alternative.new(*new_alternatives)
+        end
+
+      when Parslet::Atoms::Lookahead
+        # Simplify the lookahead parslet
+        new_bound = simplify_quantifiers(parslet.bound_parslet)
+        if new_bound.equal?(parslet.bound_parslet)
+          parslet
+        else
+          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
+        end
+
+      when Parslet::Atoms::Named
+        # Simplify the named parslet
+        new_parslet = simplify_quantifiers(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Named.new(new_parslet, parslet.name)
+        end
+
+      else
+        # Leaf nodes (Str, Re, etc.) - return as-is
+        parslet
+      end
+    end
   end
 end

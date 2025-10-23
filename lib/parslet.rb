@@ -86,6 +86,24 @@ module Parslet
   end
 
   module ClassMethods
+    # Enable automatic quantifier simplification for all rules in this parser.
+    # When enabled, redundant repetitions like repeat(1,1) are automatically
+    # unwrapped during rule construction.
+    #
+    #   class MyParser < Parslet::Parser
+    #     optimize_rules!
+    #     rule(:optimized) { str('a').repeat(1, 1) }  # automatically becomes str('a')
+    #   end
+    #
+    def optimize_rules!
+      @optimize_rules = true
+    end
+
+    # Check if rule optimization is enabled
+    def optimize_rules?
+      @optimize_rules ||= false
+    end
+
     # Define an entity for the parser. This generates a method of the same
     # name that can be used as part of other patterns. Those methods can be
     # freely mixed in your parser class with real ruby methods.
@@ -101,6 +119,15 @@ module Parslet
     #     root :twobar
     #   end
     #
+    # To enable automatic quantifier simplification:
+    #
+    #   class OptimizedParser
+    #     include Parslet
+    #     optimize_rules!
+    #
+    #     rule(:bar) { str('a').repeat(1, 1) }  # becomes str('a')
+    #   end
+    #
     def rule(name, opts={}, &definition)
       undef_method name if method_defined? name
       define_method(name) do
@@ -109,7 +136,14 @@ module Parslet
 
         # Capture the self of the parser class along with the definition.
         definition_closure = proc {
-          self.instance_eval(&definition)
+          result = self.instance_eval(&definition)
+
+          # Apply optimizations if enabled (only for classes that support it)
+          if self.class.respond_to?(:optimize_rules?) && self.class.optimize_rules?
+            result = Parslet::Optimizer.simplify_quantifiers(result)
+          end
+
+          result
         }
 
         @rules[name] = Atoms::Entity.new(name, opts[:label], &definition_closure)
@@ -312,3 +346,4 @@ require 'parslet/transform'
 require 'parslet/parser'
 require 'parslet/error_reporter'
 require 'parslet/scope'
+require 'parslet/optimizer'
