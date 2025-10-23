@@ -195,4 +195,63 @@ describe 'Automatic Rule Optimization' do
       expect(parser.variable_repeat.parse('bbb')).to be_truthy
     end
   end
+
+  context 'choice optimizations' do
+    class ChoiceOptParser < Parslet::Parser
+      optimize_rules!
+
+      rule(:duplicate_choices) {
+        str('a') | str('b') | str('a') | str('c') | str('b')
+      }
+
+      rule(:nested_alternatives) {
+        (str('x') | str('y')) | (str('z') | str('w'))
+      }
+
+      root :duplicate_choices
+    end
+
+    it 'deduplicates alternative choices' do
+      parser = ChoiceOptParser.new
+      # All three unique options should still parse
+      expect(parser.duplicate_choices.parse('a')).to eq('a')
+      expect(parser.duplicate_choices.parse('b')).to eq('b')
+      expect(parser.duplicate_choices.parse('c')).to eq('c')
+    end
+
+    it 'flattens nested alternatives' do
+      parser = ChoiceOptParser.new
+      # All four flattened options should parse
+      expect(parser.nested_alternatives.parse('x')).to eq('x')
+      expect(parser.nested_alternatives.parse('y')).to eq('y')
+      expect(parser.nested_alternatives.parse('z')).to eq('z')
+      expect(parser.nested_alternatives.parse('w')).to eq('w')
+    end
+  end
+
+  context 'all optimizations combined' do
+    class AllOptimizationsParser < Parslet::Parser
+      optimize_rules!
+
+      rule(:everything) {
+        # Quantifiers: repeat(1,1)
+        # Sequences: adjacent strings
+        # Choices: duplicate alternatives
+        ((str('a') >> str('b')).repeat(1, 1) | (str('a') >> str('b')).repeat(1, 1)) >>
+        (str('c') | str('c') | str('d'))
+      }
+
+      root :everything
+    end
+
+    it 'applies all three optimizers together' do
+      parser = AllOptimizationsParser.new
+      # Should optimize:
+      # 1. Remove repeat(1,1) with quantifier optimizer
+      # 2. Merge str('a') >> str('b') with sequence optimizer
+      # 3. Deduplicate alternatives with choice optimizer
+      expect(parser.everything.parse('abc')).to be_truthy
+      expect(parser.everything.parse('abd')).to be_truthy
+    end
+  end
 end

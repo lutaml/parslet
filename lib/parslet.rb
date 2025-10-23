@@ -138,12 +138,13 @@ module Parslet
         definition_closure = proc {
           result = self.instance_eval(&definition)
 
-          # Apply optimizations if enabled (only for classes that support it)
-          if self.class.respond_to?(:optimize_rules?) && self.class.optimize_rules?
-            # Apply both quantifier and sequence optimizations
-            result = Parslet::Optimizer.simplify_quantifiers(result)
-            result = Parslet::Optimizer.simplify_sequences(result)
-          end
+      # Apply optimizations if enabled (only for classes that support it)
+      if self.class.respond_to?(:optimize_rules?) && self.class.optimize_rules?
+        # Apply all optimizers: quantifiers, sequences, and choices
+        result = Parslet::Optimizer.simplify_quantifiers(result)
+        result = Parslet::Optimizer.simplify_sequences(result)
+        result = Parslet::Optimizer.simplify_choices(result)
+      end
 
           result
         }
