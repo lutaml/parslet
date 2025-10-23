@@ -140,10 +140,11 @@ module Parslet
 
       # Apply optimizations if enabled (only for classes that support it)
       if self.class.respond_to?(:optimize_rules?) && self.class.optimize_rules?
-        # Apply all optimizers: quantifiers, sequences, and choices
+        # Apply all optimizers: quantifiers, sequences, choices, and lookaheads
         result = Parslet::Optimizer.simplify_quantifiers(result)
         result = Parslet::Optimizer.simplify_sequences(result)
         result = Parslet::Optimizer.simplify_choices(result)
+        result = Parslet::Optimizer.simplify_lookaheads(result)
       end
 
           result
