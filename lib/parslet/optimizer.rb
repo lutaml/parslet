@@ -460,5 +460,111 @@ module Parslet
         parslet
       end
     end
+
+    # Simplifies lookahead patterns
+    # Example: Lookahead(!Lookahead(!x)) => Lookahead(&x)  (double negation)
+    #          Lookahead(&Lookahead(&x)) => Lookahead(&x)  (idempotent positive)
+    #          Lookahead(!Lookahead(&x)) => Lookahead(!x)  (negation of positive)
+    #
+    # This reduces:
+    # - Unnecessary lookahead nesting
+    # - Double negation complexity
+    # - Method call overhead
+    #
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify
+    # @return [Parslet::Atoms::Base] simplified parslet
+    def self.simplify_lookaheads(parslet)
+      # First simplify children recursively
+      simplified = simplify_lookahead_children(parslet)
+
+      # If this is a lookahead, check for optimizable patterns
+      if simplified.is_a?(Parslet::Atoms::Lookahead)
+        inner = simplified.bound_parslet
+
+        # Case 1: Inner is also a lookahead - simplify nested lookaheads
+        if inner.is_a?(Parslet::Atoms::Lookahead)
+          outer_positive = simplified.positive
+          inner_positive = inner.positive
+
+          # Double negation: !(!x) => &x
+          if !outer_positive && !inner_positive
+            return Parslet::Atoms::Lookahead.new(inner.bound_parslet, true)
+          end
+
+          # Positive of positive: &(&x) => &x (idempotent)
+          if outer_positive && inner_positive
+            return inner
+          end
+
+          # Negative of positive: !(&x) => !x
+          if !outer_positive && inner_positive
+            return Parslet::Atoms::Lookahead.new(inner.bound_parslet, false)
+          end
+
+          # Positive of negative: &(!x) => !x (positive lookahead of negative is just negative)
+          if outer_positive && !inner_positive
+            return inner
+          end
+        end
+      end
+
+      simplified
+    end
+
+    # Helper: Recursively simplify children for lookahead optimization
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
+    # @return [Parslet::Atoms::Base] parslet with simplified children
+    def self.simplify_lookahead_children(parslet)
+      case parslet
+      when Parslet::Atoms::Sequence
+        new_parslets = parslet.parslets.map { |p| simplify_lookaheads(p) }
+        if new_parslets == parslet.parslets
+          parslet
+        else
+          Parslet::Atoms::Sequence.new(*new_parslets)
+        end
+
+      when Parslet::Atoms::Alternative
+        new_alternatives = parslet.alternatives.map { |p| simplify_lookaheads(p) }
+        if new_alternatives == parslet.alternatives
+          parslet
+        else
+          Parslet::Atoms::Alternative.new(*new_alternatives)
+        end
+
+      when Parslet::Atoms::Repetition
+        new_parslet = simplify_lookaheads(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Repetition.new(
+            new_parslet,
+            parslet.min,
+            parslet.max,
+            parslet.instance_variable_get(:@tag)
+          )
+        end
+
+      when Parslet::Atoms::Lookahead
+        new_bound = simplify_lookaheads(parslet.bound_parslet)
+        if new_bound.equal?(parslet.bound_parslet)
+          parslet
+        else
+          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
+        end
+
+      when Parslet::Atoms::Named
+        new_parslet = simplify_lookaheads(parslet.parslet)
+        if new_parslet.equal?(parslet.parslet)
+          parslet
+        else
+          Parslet::Atoms::Named.new(new_parslet, parslet.name)
+        end
+
+      else
+        # Leaf nodes - return as-is
+        parslet
+      end
+    end
   end
 end
