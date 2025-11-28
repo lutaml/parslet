@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 # Alternative during matching. Contains a list of parslets that is tried each
 # one in turn. Only fails if all alternatives fail.
@@ -19,6 +20,9 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
     super()
 
     @alternatives = alternatives
+
+    # Phase 60: Pre-compute and freeze error message
+    @error_msg = "Expected one of #{alternatives.inspect}".freeze
   end
 
   #---
@@ -37,11 +41,11 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
     self.class.new(*new_alts)
   end
 
-  def error_msg
-    @error_msg ||= "Expected one of #{alternatives.inspect}"
-  end
 
   def try(source, context, consume_all)
+    # Phase 52: Cache @alternatives ivar to reduce lookup overhead
+    alternatives = @alternatives
+
     # Fast paths for common alternative sizes (avoid iteration overhead)
     case alternatives.size
     when 2
@@ -49,7 +53,7 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
       return [success, value] if success
       success2, value2 = alternatives[1].apply(source, context, consume_all)
       return [success2, value2] if success2
-      return context.err(self, source, error_msg, [value, value2])
+      return context.err(self, source, @error_msg, [value, value2])
     when 3
       success, value = alternatives[0].apply(source, context, consume_all)
       return [success, value] if success
@@ -57,7 +61,7 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
       return [success2, value2] if success2
       success3, value3 = alternatives[2].apply(source, context, consume_all)
       return [success3, value3] if success3
-      return context.err(self, source, error_msg, [value, value2, value3])
+      return context.err(self, source, @error_msg, [value, value2, value3])
     end
 
     # General case: Optimize by not allocating error array until we know all alternatives fail
@@ -74,11 +78,20 @@ class Parslet::Atoms::Alternative < Parslet::Atoms::Base
     end
 
     # If we reach this point, all alternatives have failed.
-    context.err(self, source, error_msg, errors)
+    context.err(self, source, @error_msg, errors)
   end
 
   precedence ALTERNATE
   def to_s_inner(prec)
     alternatives.map { |a| a.to_s(prec) }.join(' / ')
+  end
+
+  # FIRST set of alternative is union of all alternatives' FIRST sets
+  # This is the key computation for cut operator insertion:
+  # If FIRST(alt1) ∩ FIRST(alt2) = ∅, we can insert a cut after alt1
+  def compute_first_set
+    return Set.new if alternatives.empty?
+
+    alternatives.map(&:first_set).reduce(&:union)
   end
 end

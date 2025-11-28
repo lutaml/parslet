@@ -7,6 +7,7 @@ gemspec
 gem "base64"
 gem "benchmark-ips"
 gem "memory_profiler"
+gem "parslet", "~> 2.0", require: false  # Original parslet for comparison
 gem "racc"
 gem "rake"
 gem "rdoc"

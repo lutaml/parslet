@@ -340,7 +340,9 @@ module Parslet
 end
 
 require 'parslet/version'
+require 'parslet/result'
 require 'parslet/slice'
+require 'parslet/first_set'
 require 'parslet/cause'
 require 'parslet/source'
 require 'parslet/atoms'

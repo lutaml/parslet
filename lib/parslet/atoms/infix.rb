@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Parslet::Atoms::Infix < Parslet::Atoms::Base
   attr_reader :element, :operations, :reducer
 
@@ -23,6 +25,8 @@ class Parslet::Atoms::Infix < Parslet::Atoms::Base
   def produce_tree(ary)
     return ary unless ary.kind_of? Array
 
+    # Phase 55: Cache @reducer ivar to reduce lookup overhead in loop
+    reducer = @reducer
     left = ary.shift
 
     until ary.empty?
@@ -49,14 +53,16 @@ class Parslet::Atoms::Infix < Parslet::Atoms::Base
   #       the recursion logic here with parslet error handling.
   #
   def precedence_climb(source, context, consume_all, current_prec=1, needs_element=false)
+    # Phase 55: Cache @element ivar to reduce lookup overhead
+    element = @element
     result = []
 
     # To even begin parsing an arithmetic expression, there needs to be
     # at least one @element.
-    success, value = @element.apply(source, context, false)
+    success, value = element.apply(source, context, false)
 
     unless success
-      throw :error, context.err(self, source, "#{@element.inspect} was expected", [value])
+      throw :error, context.err(self, source, "#{element.inspect} was expected", [value])
     end
 
     result << flatten(value, true)
@@ -94,8 +100,10 @@ class Parslet::Atoms::Infix < Parslet::Atoms::Base
   end
 
   def match_operation(source, context, consume_all)
+    # Phase 55: Cache @operations ivar to reduce lookup overhead in loop
+    operations = @operations
     errors = []
-    @operations.each do |op_atom, prec, assoc|
+    operations.each do |op_atom, prec, assoc|
       success, value = op_atom.apply(source, context, consume_all)
       return flatten(value, true), prec, assoc if success
 

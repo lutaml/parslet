@@ -65,6 +65,9 @@ namespace :benchmark do
   task quick: :examples
 end
 
+# Load comparative benchmark tasks
+Dir.glob('benchmark/tasks/*.rake').each { |r| load r }
+
 desc 'Run quick benchmarks'
 task benchmark: 'benchmark:quick'
 

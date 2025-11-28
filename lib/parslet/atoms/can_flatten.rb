@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 
 module Parslet::Atoms
   # A series of helper functions that have the common topic of flattening
@@ -22,13 +24,28 @@ module Parslet::Atoms
     #
     def flatten(value, named=false)
       # Passes through everything that isn't an array of things
-      return value unless value.instance_of? Array
+      # Phase 43: Use simpler check - if it's not an Array, return as-is
+      return value unless value.is_a?(Array)
 
       # Extracts the s-expression tag
       tag = value[0]
 
-      # Flatten each element
+      # Phase 43: Optimize flattening - reduce method call overhead
+      # For single element arrays (common case), handle directly
       tail_size = value.size - 1
+      if tail_size == 1
+        flattened = flatten(value[1])
+        case tag
+          when :sequence
+            return flattened
+          when :maybe
+            return named ? flattened : (flattened || '')
+          when :repetition
+            return flatten_repetition([flattened], named)
+        end
+      end
+
+      # Flatten each element
       result = Array.new(tail_size)
       i = 0
       while i < tail_size
@@ -75,6 +92,7 @@ module Parslet::Atoms
       }
     end
     # @api private
+    # Phase 43: Optimized merge_fold - reduce repeated class checks
     def merge_fold(l, r)
       l_class = l.class
       r_class = r.class
@@ -89,15 +107,18 @@ module Parslet::Atoms
         end
       end
 
+      # Phase 43: Cache instance_of? checks to avoid repeated method calls
       # unequal pairs: hoist to same level. ------------------------------------
-      l_is_str = l_class == String || l.instance_of?(Parslet::Slice)
-      r_is_str = r_class == String || r.instance_of?(Parslet::Slice)
+      l_is_slice = l.instance_of?(Parslet::Slice)
+      r_is_slice = r.instance_of?(Parslet::Slice)
+      l_is_str = l_class == String || l_is_slice
+      r_is_str = r_class == String || r_is_slice
 
       # Maybe classes are not equal, but both are stringlike?
       if l_is_str && r_is_str
         # if we're merging a String with a Slice, the slice wins.
-        return r if r.instance_of?(Parslet::Slice)
-        return l if l.instance_of?(Parslet::Slice)
+        return r if r_is_slice
+        return l if l_is_slice
 
         fail "NOTREACHED: What other stringlike classes are there?"
       end
@@ -120,14 +141,29 @@ module Parslet::Atoms
     #
     # @api private
     #
+    # Phase 43: Optimized flatten_repetition - reduce array iterations
     def flatten_repetition(list, named)
-      if list.any? { |e| e.instance_of?(Hash) }
+      # Phase 43: Single pass to check for hashes and arrays
+      has_hash = false
+      has_array = false
+
+      i = 0
+      len = list.size
+      while i < len
+        e = list[i]
+        has_hash = true if e.instance_of?(Hash)
+        has_array = true if e.instance_of?(Array)
+        break if has_hash && has_array  # Early exit if both found
+        i += 1
+      end
+
+      if has_hash
         # If keyed subtrees are in the array, we'll want to discard all
         # strings inbetween. To keep them, name them.
         return list.select { |e| e.instance_of?(Hash) }
       end
 
-      if list.any? { |e| e.instance_of?(Array) }
+      if has_array
         # If any arrays are nested in this array, flatten all arrays to this
         # level.
         return list.

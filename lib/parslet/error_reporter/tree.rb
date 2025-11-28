@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Parslet
   module ErrorReporter
     # An error reporter has two central methods, one for reporting errors at

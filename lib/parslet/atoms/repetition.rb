@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 
 # Matches a parslet repeatedly.
 #
@@ -15,26 +17,40 @@ class Parslet::Atoms::Repetition < Parslet::Atoms::Base
       "Asking for zero repetitions of a parslet. (#{parslet.inspect} repeating #{min},#{max})" \
       if max == 0
 
-
     @parslet = parslet
     @min = min
     @max = max
     @tag = tag
+
+    # Phase 58: Pre-compute and freeze error messages to avoid allocations
+    @error_msgs = {
+      minrep: "Expected at least #{min} of #{parslet.inspect}".freeze,
+      unconsumed: 'Extra input after last repetition'.freeze
+    }.freeze
   end
 
   def error_msgs
-    @error_msgs ||= {
-      minrep: "Expected at least #{min} of #{parslet.inspect}",
-      unconsumed: 'Extra input after last repetition'
-    }
+    @error_msgs
   end
 
   def try(source, context, consume_all)
+    # Phase 54: Cache ivars to reduce lookup overhead in hot method
+    parslet = @parslet
+    min = @min
+    max = @max
+    tag = @tag
+
+    # Use tree memoization if interval cache is enabled
+    if context.respond_to?(:use_tree_memoization?) && context.use_tree_memoization?
+      return try_with_tree_memoization(source, context, consume_all)
+    end
+
     # Fast path for .maybe (min=0, max=1) - very common case
     if min == 0 && max == 1
       success, value = parslet.apply(source, context, false)
-      return succ([@tag, value]) if success
-      return succ([@tag])
+      return succ([tag, value]) if success
+      # Phase 57b: Use frozen constant for empty repetition array
+      return succ(tag == :repetition ? Parslet::Atoms::Base::EMPTY_REPETITION_ARRAY : [tag])
     end
 
     # Fast path for exact count (min == max)
@@ -42,23 +58,93 @@ class Parslet::Atoms::Repetition < Parslet::Atoms::Base
       case max
       when 1
         success, value = parslet.apply(source, context, consume_all)
-        return success ? succ([@tag, value]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [value])
+        return success ? succ([tag, value]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [value])
       when 2
         success, v1 = parslet.apply(source, context, false)
         return context.err_at(self, source, error_msgs[:minrep], source.pos, [v1]) unless success
         success, v2 = parslet.apply(source, context, consume_all)
-        return success ? succ([@tag, v1, v2]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v2])
+        return success ? succ([tag, v1, v2]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v2])
       when 3
         success, v1 = parslet.apply(source, context, false)
         return context.err_at(self, source, error_msgs[:minrep], source.pos, [v1]) unless success
         success, v2 = parslet.apply(source, context, false)
         return context.err_at(self, source, error_msgs[:minrep], source.pos, [v2]) unless success
         success, v3 = parslet.apply(source, context, consume_all)
-        return success ? succ([@tag, v1, v2, v3]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v3])
+        return success ? succ([tag, v1, v2, v3]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v3])
       end
     end
 
     # General case for variable or large repetitions
+    try_repetition_general(source, context, consume_all)
+  end
+
+  # GPeg-style tree memoization for repetitions
+  # Caches arrays of successful matches to reuse parsed prefixes
+  def try_with_tree_memoization(source, context, consume_all)
+    start_pos = source.bytepos
+    cache_key = object_id
+
+    # Check if we have a cached tree result at this position
+    cached = context.query_tree_memo(cache_key, start_pos)
+    if cached
+      values, end_pos = cached
+      source.bytepos = end_pos
+      return succ([@tag] + values)
+    end
+
+    # Parse repetition and collect all successful matches
+    occ = 0
+    accum = []
+    positions = [start_pos]  # Track position after each match
+    break_on = nil
+
+    loop do
+      pos_before = source.bytepos
+      success, value = parslet.apply(source, context, false)
+
+      break_on = value
+      break unless success
+
+      occ += 1
+      accum << value
+      positions << source.bytepos
+
+      # Check max bound
+      break if max && occ >= max
+    end
+
+    # Store tree memo: cache the array of successful matches
+    # This allows reusing the parsed prefix on subsequent parses
+    if occ > 0
+      end_pos = positions[occ]
+      context.store_tree_memo(cache_key, start_pos, accum.dup, end_pos)
+    end
+
+    # Check min bound
+    if occ < min
+      source.bytepos = start_pos
+      return context.err_at(
+        self,
+        source,
+        error_msgs[:minrep],
+        start_pos,
+        [break_on])
+    end
+
+    # Check consume_all requirement
+    if consume_all && source.chars_left > 0
+      return context.err(
+        self,
+        source,
+        error_msgs[:unconsumed],
+        [break_on])
+    end
+
+    return succ([@tag] + accum)
+  end
+
+  # General repetition parsing (extracted for clarity)
+  def try_repetition_general(source, context, consume_all)
     occ = 0
     # Optimize: Pre-allocate array when max is known to avoid repeated expansions
     accum = max ? Array.new(max + 1) : [@tag]
@@ -116,5 +202,15 @@ class Parslet::Atoms::Repetition < Parslet::Atoms::Base
     minmax = '?' if min == 0 && max == 1
 
     parslet.to_s(prec) + minmax
+  end
+
+  # FIRST set of repetition:
+  # - If min == 0 (can match empty), includes EPSILON
+  # - Always includes FIRST of the repeated parslet
+  def compute_first_set
+    result = parslet.first_set.dup
+    # If repetition can match zero times, add EPSILON
+    result.add(Parslet::FirstSet::EPSILON) if min == 0
+    result
   end
 end

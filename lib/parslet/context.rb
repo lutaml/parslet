@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Provides a context for tree transformations to run in. The context allows
 # accessing each of the bindings in the bindings hash as local method.
 #

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This wraps pieces of parslet definition and gives them a name. The wrapped
 # piece is lazily evaluated and cached. This has two purposes:
 #
@@ -20,7 +22,9 @@ class Parslet::Atoms::Entity < Parslet::Atoms::Base
   end
 
   def try(source, context, consume_all)
-    parslet.apply(source, context, consume_all)
+    # Phase 54: Cache parslet method result to reduce method call overhead
+    p = parslet
+    p.apply(source, context, consume_all)
   end
 
   # Entity is just a thin wrapper that delegates to the underlying parslet.

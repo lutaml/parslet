@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 require 'stringio'
 require 'strscan'
@@ -80,6 +81,20 @@ module Parslet
       slice_str = @str.check_until(Regexp.new(Regexp.escape(str)))
       return chars_left unless slice_str
       return slice_str.size - str.size
+    end
+
+    # Phase 31: Scan forward to find the next occurrence of a character.
+    # Returns the byte position of the next occurrence, or nil if not found.
+    # Does not move the scanner position.
+    #
+    # @param char [String] single character to search for
+    # @return [Integer, nil] byte position or nil if not found
+    #
+    def index_of_char(char)
+      # Use StringScanner's string directly for fast indexOf
+      idx = @str.rest.index(char)
+      return nil unless idx
+      @str.pos + idx
     end
 
     # Position of the parse as a character offset into the original string.

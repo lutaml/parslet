@@ -1,570 +1,86 @@
 # frozen_string_literal: true
 
+require_relative 'ast_visitor'
+require_relative 'optimizers/quantifier_optimizer'
+require_relative 'optimizers/sequence_optimizer'
+require_relative 'optimizers/choice_optimizer'
+require_relative 'optimizers/lookahead_optimizer'
+require_relative 'optimizers/cut_inserter'
+
 # Grammar-level optimizations for Parslet parsers
-# These optimizations transform the parser AST during construction
-# to reduce runtime overhead without changing semantics.
+# These optimizations transform the parser AST to reduce runtime overhead
+# without changing semantics.
+#
+# Architecture:
+# - Uses Visitor pattern for clean separation of traversal and transformation
+# - Each optimizer is a separate class inheriting from ASTVisitor
+# - Optimizer module provides facade methods for easy access
 module Parslet
   module Optimizer
-    # Merges adjacent Str atoms in a Sequence into a single Str atom
-    # Example: str('hello') >> str(' ') >> str('world') => str('hello world')
+    # Simplifies redundant quantifiers in a parslet tree
+    # Example: str('a').repeat(1, 1) => str('a')
+    #          str('a').repeat(0, 1).repeat(0, 1) => str('a').repeat(0, 1)
     #
-    # This reduces:
-    # - Method calls during parsing (~30% in string-heavy parsers)
-    # - Memory allocations
-    # - Cache lookups
-    #
-    # @param parslets [Array<Parslet::Atoms::Base>] array of parslets in sequence
-    # @return [Array<Parslet::Atoms::Base>] optimized array with merged strings
-    def self.merge_adjacent_strings(parslets)
-      return parslets if parslets.size < 2
-
-      result = []
-      i = 0
-
-      while i < parslets.size
-        current = parslets[i]
-
-        # Check if current is a Str atom
-        if current.is_a?(Parslet::Atoms::Str)
-          # Look ahead to find consecutive Str atoms
-          merged_str = current.str.dup
-          j = i + 1
-
-          while j < parslets.size && parslets[j].is_a?(Parslet::Atoms::Str)
-            merged_str << parslets[j].str
-            j += 1
-          end
-
-          # If we merged anything, create new Str atom
-          if j > i + 1
-            result << Parslet::Atoms::Str.new(merged_str)
-            i = j
-          else
-            result << current
-            i += 1
-          end
-        else
-          result << current
-          i += 1
-        end
-      end
-
-      result
-    end
-
-    # Normalizes character classes by sorting and deduplicating ranges
-    # This prepares them for merging in alternations
-    #
-    # @param char_class [Parslet::Atoms::Re] character class to normalize
-    # @return [Parslet::Atoms::Re] normalized character class
-    def self.normalize_character_class(char_class)
-      # This is a placeholder - actual implementation would require
-      # access to Re internals to sort/deduplicate ranges
-      char_class
-    end
-
-    # Merges adjacent character classes in an Alternative into a single Re atom
-    # Example: match['a-z'] | match['A-Z'] | match['0-9'] => match['a-zA-Z0-9']
-    #
-    # This reduces:
-    # - Number of atoms to try in alternation (20-40% fewer)
-    # - Cache memory usage
-    # - Alternation logic complexity
-    #
-    # @param alternatives [Array<Parslet::Atoms::Base>] array of alternative parslets
-    # @return [Array<Parslet::Atoms::Base>] optimized array with merged character classes
-    def self.merge_character_classes(alternatives)
-      return alternatives if alternatives.size < 2
-
-      result = []
-      i = 0
-
-      while i < alternatives.size
-        current = alternatives[i]
-
-        # Check if current is a Re (character class) atom
-        if current.is_a?(Parslet::Atoms::Re)
-          # Look ahead to find consecutive Re atoms
-          patterns = [current.match]
-          j = i + 1
-
-          while j < alternatives.size && alternatives[j].is_a?(Parslet::Atoms::Re)
-            patterns << alternatives[j].match
-            j += 1
-          end
-
-          # If we found multiple Re atoms, merge them
-          if j > i + 1
-            # Combine all patterns into one
-            merged_pattern = patterns.join
-            result << Parslet::Atoms::Re.new(merged_pattern)
-            i = j
-          else
-            result << current
-            i += 1
-          end
-        else
-          result << current
-          i += 1
-        end
-      end
-
-      result
+    # @param parslet [Parslet::Atoms::Base] parslet to simplify
+    # @return [Parslet::Atoms::Base] simplified parslet
+    def self.simplify_quantifiers(parslet)
+      Optimizers::QuantifierOptimizer.new.visit(parslet)
     end
 
     # Simplifies sequences by flattening and merging adjacent strings
     # Example: str('a') >> str('b') => str('ab')
     #          (str('a') >> str('b')) >> str('c') => str('abc')
     #
-    # This reduces:
-    # - Number of sequence elements
-    # - Method calls during parsing
-    # - Memory allocations
-    #
     # @param parslet [Parslet::Atoms::Base] parslet to simplify
     # @return [Parslet::Atoms::Base] simplified parslet
     def self.simplify_sequences(parslet)
-      # First simplify children recursively
-      simplified = simplify_sequence_children(parslet)
-
-      # If this is a sequence, apply optimizations
-      if simplified.is_a?(Parslet::Atoms::Sequence)
-        # Flatten nested sequences
-        flattened = flatten_nested_sequences(simplified.parslets)
-
-        # Merge adjacent strings
-        merged = merge_adjacent_strings(flattened)
-
-        # If only one element remains, unwrap the sequence
-        if merged.size == 1
-          return merged[0]
-        end
-
-        # Return optimized sequence if changed
-        if merged != simplified.parslets
-          return Parslet::Atoms::Sequence.new(*merged)
-        end
-      end
-
-      simplified
-    end
-
-    # Helper: Flatten nested sequences in an array of parslets
-    # @param parslets [Array<Parslet::Atoms::Base>] array of parslets
-    # @return [Array<Parslet::Atoms::Base>] flattened array
-    def self.flatten_nested_sequences(parslets)
-      result = []
-      parslets.each do |p|
-        if p.is_a?(Parslet::Atoms::Sequence)
-          result.concat(p.parslets)
-        else
-          result << p
-        end
-      end
-      result
-    end
-
-    # Helper: Recursively simplify children for sequence optimization
-    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
-    # @return [Parslet::Atoms::Base] parslet with simplified children
-    def self.simplify_sequence_children(parslet)
-      case parslet
-      when Parslet::Atoms::Sequence
-        new_parslets = parslet.parslets.map { |p| simplify_sequences(p) }
-        if new_parslets == parslet.parslets
-          parslet
-        else
-          Parslet::Atoms::Sequence.new(*new_parslets)
-        end
-
-      when Parslet::Atoms::Alternative
-        new_alternatives = parslet.alternatives.map { |p| simplify_sequences(p) }
-        if new_alternatives == parslet.alternatives
-          parslet
-        else
-          Parslet::Atoms::Alternative.new(*new_alternatives)
-        end
-
-      when Parslet::Atoms::Repetition
-        new_parslet = simplify_sequences(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Repetition.new(
-            new_parslet,
-            parslet.min,
-            parslet.max,
-            parslet.instance_variable_get(:@tag)
-          )
-        end
-
-      when Parslet::Atoms::Lookahead
-        new_bound = simplify_sequences(parslet.bound_parslet)
-        if new_bound.equal?(parslet.bound_parslet)
-          parslet
-        else
-          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
-        end
-
-      when Parslet::Atoms::Named
-        new_parslet = simplify_sequences(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Named.new(new_parslet, parslet.name)
-        end
-
-      else
-        # Leaf nodes - return as-is
-        parslet
-      end
-    end
-
-    # Simplifies redundant quantifiers in a parslet tree
-    # Example: str('a').repeat(1, 1) => str('a')
-    #          str('a').repeat(0, 1).repeat(0, 1) => str('a').repeat(0, 1)
-    #
-    # This reduces:
-    # - Unnecessary method calls during parsing
-    # - Memory allocations for repetition tracking
-    # - Cache entries
-    #
-    # @param parslet [Parslet::Atoms::Base] parslet to simplify
-    # @return [Parslet::Atoms::Base] simplified parslet
-    def self.simplify_quantifiers(parslet)
-      # Base case: if not a repetition, check children recursively
-      unless parslet.is_a?(Parslet::Atoms::Repetition)
-        return simplify_children(parslet)
-      end
-
-      # Simplify the child parslet first
-      inner = simplify_quantifiers(parslet.parslet)
-
-      # Case 1: repeat(1, 1) => unwrap (no repetition needed)
-      if parslet.min == 1 && parslet.max == 1
-        return inner
-      end
-
-      # Case 2: Nested repetitions - flatten if possible
-      # repeat(m1, M1).repeat(m2, M2) can sometimes be simplified
-      if inner.is_a?(Parslet::Atoms::Repetition)
-        # Special case: repeat(0, 1).repeat(0, 1) => repeat(0, 1) (idempotent)
-        if parslet.min == 0 && parslet.max == 1 &&
-           inner.min == 0 && inner.max == 1
-          return inner
-        end
-
-        # Special case: repeat(n, n).repeat(m, m) => repeat(n*m, n*m) for exact counts
-        if parslet.min == parslet.max && inner.min == inner.max &&
-           parslet.max && inner.max
-          new_count = parslet.min * inner.min
-          return Parslet::Atoms::Repetition.new(
-            inner.parslet,
-            new_count,
-            new_count,
-            parslet.instance_variable_get(:@tag)
-          )
-        end
-      end
-
-      # Return optimized repetition with simplified child
-      if inner.equal?(parslet.parslet)
-        # No change to child, return original
-        parslet
-      else
-        # Child was simplified, create new repetition with simplified child
-        Parslet::Atoms::Repetition.new(
-          inner,
-          parslet.min,
-          parslet.max,
-          parslet.instance_variable_get(:@tag)
-        )
-      end
-    end
-
-    # Helper: Recursively simplify children of composite parslets
-    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
-    # @return [Parslet::Atoms::Base] parslet with simplified children
-    def self.simplify_children(parslet)
-      case parslet
-      when Parslet::Atoms::Sequence
-        # Simplify each element in the sequence
-        new_parslets = parslet.parslets.map { |p| simplify_quantifiers(p) }
-        if new_parslets == parslet.parslets
-          parslet
-        else
-          Parslet::Atoms::Sequence.new(*new_parslets)
-        end
-
-      when Parslet::Atoms::Alternative
-        # Simplify each alternative
-        new_alternatives = parslet.alternatives.map { |p| simplify_quantifiers(p) }
-        if new_alternatives == parslet.alternatives
-          parslet
-        else
-          Parslet::Atoms::Alternative.new(*new_alternatives)
-        end
-
-      when Parslet::Atoms::Lookahead
-        # Simplify the lookahead parslet
-        new_bound = simplify_quantifiers(parslet.bound_parslet)
-        if new_bound.equal?(parslet.bound_parslet)
-          parslet
-        else
-          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
-        end
-
-      when Parslet::Atoms::Named
-        # Simplify the named parslet
-        new_parslet = simplify_quantifiers(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Named.new(new_parslet, parslet.name)
-        end
-
-      else
-        # Leaf nodes (Str, Re, etc.) - return as-is
-        parslet
-      end
+      Optimizers::SequenceOptimizer.new.visit(parslet)
     end
 
     # Simplifies choice/alternative patterns
-    # Example: Alternative(str('a'), str('a')) => str('a')
-    #          Alternative(str('a')) => str('a')
-    #          Alternative(Alternative(str('a'), str('b')), str('c')) => Alternative(str('a'), str('b'), str('c'))
-    #
-    # This reduces:
-    # - Number of alternatives to try
-    # - Duplicate work when alternatives match the same thing
-    # - Unnecessary Alternative wrapper for single choices
+    # Example: (A | B) | C => A | B | C
+    #          A | B | A => A | B
     #
     # @param parslet [Parslet::Atoms::Base] parslet to simplify
     # @return [Parslet::Atoms::Base] simplified parslet
     def self.simplify_choices(parslet)
-      # First simplify children recursively
-      simplified = simplify_choice_children(parslet)
-
-      # If this is an alternative, apply optimizations
-      if simplified.is_a?(Parslet::Atoms::Alternative)
-        # Flatten nested alternatives
-        flattened = flatten_nested_alternatives(simplified.alternatives)
-
-        # Deduplicate alternatives
-        deduplicated = deduplicate_alternatives(flattened)
-
-        # If only one alternative remains, unwrap it
-        if deduplicated.size == 1
-          return deduplicated[0]
-        end
-
-        # Return optimized alternative if changed
-        if deduplicated != simplified.alternatives
-          return Parslet::Atoms::Alternative.new(*deduplicated)
-        end
-      end
-
-      simplified
-    end
-
-    # Helper: Flatten nested alternatives in an array of parslets
-    # @param alternatives [Array<Parslet::Atoms::Base>] array of alternatives
-    # @return [Array<Parslet::Atoms::Base>] flattened array
-    def self.flatten_nested_alternatives(alternatives)
-      result = []
-      alternatives.each do |alt|
-        if alt.is_a?(Parslet::Atoms::Alternative)
-          result.concat(alt.alternatives)
-        else
-          result << alt
-        end
-      end
-      result
-    end
-
-    # Helper: Remove duplicate alternatives from an array
-    # Uses structural equality to detect duplicates
-    # @param alternatives [Array<Parslet::Atoms::Base>] array of alternatives
-    # @return [Array<Parslet::Atoms::Base>] deduplicated array
-    def self.deduplicate_alternatives(alternatives)
-      return alternatives if alternatives.size < 2
-
-      # Build a hash to track seen alternatives
-      # We use to_s as a proxy for structural equality
-      seen = {}
-      result = []
-
-      alternatives.each do |alt|
-        key = alt.to_s
-        unless seen[key]
-          seen[key] = true
-          result << alt
-        end
-      end
-
-      result
-    end
-
-    # Helper: Recursively simplify children for choice optimization
-    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
-    # @return [Parslet::Atoms::Base] parslet with simplified children
-    def self.simplify_choice_children(parslet)
-      case parslet
-      when Parslet::Atoms::Sequence
-        new_parslets = parslet.parslets.map { |p| simplify_choices(p) }
-        if new_parslets == parslet.parslets
-          parslet
-        else
-          Parslet::Atoms::Sequence.new(*new_parslets)
-        end
-
-      when Parslet::Atoms::Alternative
-        new_alternatives = parslet.alternatives.map { |p| simplify_choices(p) }
-        if new_alternatives == parslet.alternatives
-          parslet
-        else
-          Parslet::Atoms::Alternative.new(*new_alternatives)
-        end
-
-      when Parslet::Atoms::Repetition
-        new_parslet = simplify_choices(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Repetition.new(
-            new_parslet,
-            parslet.min,
-            parslet.max,
-            parslet.instance_variable_get(:@tag)
-          )
-        end
-
-      when Parslet::Atoms::Lookahead
-        new_bound = simplify_choices(parslet.bound_parslet)
-        if new_bound.equal?(parslet.bound_parslet)
-          parslet
-        else
-          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
-        end
-
-      when Parslet::Atoms::Named
-        new_parslet = simplify_choices(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Named.new(new_parslet, parslet.name)
-        end
-
-      else
-        # Leaf nodes - return as-is
-        parslet
-      end
+      Optimizers::ChoiceOptimizer.new.visit(parslet)
     end
 
     # Simplifies lookahead patterns
-    # Example: Lookahead(!Lookahead(!x)) => Lookahead(&x)  (double negation)
-    #          Lookahead(&Lookahead(&x)) => Lookahead(&x)  (idempotent positive)
-    #          Lookahead(!Lookahead(&x)) => Lookahead(!x)  (negation of positive)
-    #
-    # This reduces:
-    # - Unnecessary lookahead nesting
-    # - Double negation complexity
-    # - Method call overhead
+    # Example: !(!x) => &x (double negation elimination)
     #
     # @param parslet [Parslet::Atoms::Base] parslet to simplify
     # @return [Parslet::Atoms::Base] simplified parslet
     def self.simplify_lookaheads(parslet)
-      # First simplify children recursively
-      simplified = simplify_lookahead_children(parslet)
-
-      # If this is a lookahead, check for optimizable patterns
-      if simplified.is_a?(Parslet::Atoms::Lookahead)
-        inner = simplified.bound_parslet
-
-        # Case 1: Inner is also a lookahead - simplify nested lookaheads
-        if inner.is_a?(Parslet::Atoms::Lookahead)
-          outer_positive = simplified.positive
-          inner_positive = inner.positive
-
-          # Double negation: !(!x) => &x
-          if !outer_positive && !inner_positive
-            return Parslet::Atoms::Lookahead.new(inner.bound_parslet, true)
-          end
-
-          # Positive of positive: &(&x) => &x (idempotent)
-          if outer_positive && inner_positive
-            return inner
-          end
-
-          # Negative of positive: !(&x) => !x
-          if !outer_positive && inner_positive
-            return Parslet::Atoms::Lookahead.new(inner.bound_parslet, false)
-          end
-
-          # Positive of negative: &(!x) => !x (positive lookahead of negative is just negative)
-          if outer_positive && !inner_positive
-            return inner
-          end
-        end
-      end
-
-      simplified
+      Optimizers::LookaheadOptimizer.new.visit(parslet)
     end
 
-    # Helper: Recursively simplify children for lookahead optimization
-    # @param parslet [Parslet::Atoms::Base] parslet to simplify children of
-    # @return [Parslet::Atoms::Base] parslet with simplified children
-    def self.simplify_lookahead_children(parslet)
-      case parslet
-      when Parslet::Atoms::Sequence
-        new_parslets = parslet.parslets.map { |p| simplify_lookaheads(p) }
-        if new_parslets == parslet.parslets
-          parslet
-        else
-          Parslet::Atoms::Sequence.new(*new_parslets)
-        end
+    # Automatically insert cut operators where safe (AC-FIRST algorithm)
+    # Inserts cuts after deterministic prefixes when alternatives have disjoint FIRST sets
+    # This enables O(1) space complexity by allowing aggressive cache eviction
+    #
+    # Example: str('if') >> x | str('while') >> y
+    #       => str('if').cut >> x | str('while').cut >> y
+    #
+    # @param parslet [Parslet::Atoms::Base] parslet to optimize
+    # @return [Parslet::Atoms::Base] optimized parslet with cuts inserted
+    def self.insert_cuts(parslet)
+      Optimizers::CutInserter.new.optimize(parslet)
+    end
 
-      when Parslet::Atoms::Alternative
-        new_alternatives = parslet.alternatives.map { |p| simplify_lookaheads(p) }
-        if new_alternatives == parslet.alternatives
-          parslet
-        else
-          Parslet::Atoms::Alternative.new(*new_alternatives)
-        end
-
-      when Parslet::Atoms::Repetition
-        new_parslet = simplify_lookaheads(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Repetition.new(
-            new_parslet,
-            parslet.min,
-            parslet.max,
-            parslet.instance_variable_get(:@tag)
-          )
-        end
-
-      when Parslet::Atoms::Lookahead
-        new_bound = simplify_lookaheads(parslet.bound_parslet)
-        if new_bound.equal?(parslet.bound_parslet)
-          parslet
-        else
-          Parslet::Atoms::Lookahead.new(new_bound, parslet.positive)
-        end
-
-      when Parslet::Atoms::Named
-        new_parslet = simplify_lookaheads(parslet.parslet)
-        if new_parslet.equal?(parslet.parslet)
-          parslet
-        else
-          Parslet::Atoms::Named.new(new_parslet, parslet.name)
-        end
-
-      else
-        # Leaf nodes - return as-is
-        parslet
-      end
+    # Apply all optimizations in recommended order
+    # This is a convenience method that applies all optimizer passes
+    #
+    # @param parslet [Parslet::Atoms::Base] parslet to optimize
+    # @return [Parslet::Atoms::Base] fully optimized parslet
+    def self.optimize_all(parslet)
+      result = simplify_quantifiers(parslet)
+      result = simplify_sequences(result)
+      result = simplify_choices(result)
+      result = simplify_lookaheads(result)
+      result = insert_cuts(result)
+      result
     end
   end
 end

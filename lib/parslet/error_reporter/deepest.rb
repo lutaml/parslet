@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Parslet
   module ErrorReporter
     # Instead of reporting the latest error that happens like {Tree} does,

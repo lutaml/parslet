@@ -1,0 +1,627 @@
+{
+  "metadata": {
+    "generated_at": "2025-11-28T19:03:04+0800",
+    "ruby_version": "3.1.1",
+    "ruby_platform": "arm64-darwin21",
+    "plurimath_parslet_version": "3.0.0",
+    "original_parslet_version": "2.0.0"
+  },
+  "summary": {
+    "total_test_cases": 14,
+    "plurimath_faster_count": 2,
+    "plurimath_slower_count": 12,
+    "average_speedup": 0.9150095735332391,
+    "memory_improvement_count": 0,
+    "memory_improvement_rate": 0.0
+  },
+  "detailed_results": {
+    "json_parser": {
+      "simple_object": {
+        "plurimath": {
+          "timing": {
+            "ips": 4940.407309003458,
+            "stddev_percent": 69.29115131216987,
+            "microseconds_per_iteration": 202.41246064420395,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.03371429443359375,
+            "total_retained_mb": 0.004150390625,
+            "objects_allocated": 524,
+            "objects_retained": 73
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 8218.234315414036,
+            "stddev_percent": 12.050943617980982,
+            "microseconds_per_iteration": 121.68063864088302,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.03371429443359375,
+            "total_retained_mb": 0.004150390625,
+            "objects_allocated": 524,
+            "objects_retained": 73
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.601151916505627,
+            "speedup_text": "1.66x slower",
+            "time_reduction_percent": -66.34730299335901,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "simple_array": {
+        "plurimath": {
+          "timing": {
+            "ips": 6489.2142067080385,
+            "stddev_percent": 3.4211596555383257,
+            "microseconds_per_iteration": 154.10186320653105,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.03986358642578125,
+            "total_retained_mb": 0.0047454833984375,
+            "objects_allocated": 642,
+            "objects_retained": 88
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 5524.572663733914,
+            "stddev_percent": 16.224520940844876,
+            "microseconds_per_iteration": 181.0094754594333,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.03986358642578125,
+            "total_retained_mb": 0.0047454833984375,
+            "objects_allocated": 642,
+            "objects_retained": 88
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 1.1746092597001248,
+            "speedup_text": "1.17x faster",
+            "time_reduction_percent": 14.86530590987356,
+            "plurimath_faster": true
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "nested_object": {
+        "plurimath": {
+          "timing": {
+            "ips": 5067.47665214423,
+            "stddev_percent": 4.2308893439615245,
+            "microseconds_per_iteration": 197.33687368384113,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.049078941345214844,
+            "total_retained_mb": 0.0072231292724609375,
+            "objects_allocated": 842,
+            "objects_retained": 131
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 2862.55488416295,
+            "stddev_percent": 69.28983157838896,
+            "microseconds_per_iteration": 349.33828012608166,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.048918724060058594,
+            "total_retained_mb": 0.0070629119873046875,
+            "objects_allocated": 842,
+            "objects_retained": 131
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 1.7702635782391396,
+            "speedup_text": "1.77x faster",
+            "time_reduction_percent": 43.51123684108734,
+            "plurimath_faster": true
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "mixed_array": {
+        "plurimath": {
+          "timing": {
+            "ips": 3774.451259119209,
+            "stddev_percent": 2.0903173137322053,
+            "microseconds_per_iteration": 264.93917429294237,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.06436347961425781,
+            "total_retained_mb": 0.008846282958984375,
+            "objects_allocated": 1098,
+            "objects_retained": 164
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 3890.052212913284,
+            "stddev_percent": 1.2424936762120973,
+            "microseconds_per_iteration": 257.06595831295897,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.06436347961425781,
+            "total_retained_mb": 0.008846282958984375,
+            "objects_allocated": 1098,
+            "objects_retained": 164
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.970282930031034,
+            "speedup_text": "1.03x slower",
+            "time_reduction_percent": -3.062722124567885,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "large_object": {
+        "plurimath": {
+          "timing": {
+            "ips": 69.17273726185441,
+            "stddev_percent": 32.5157310766724,
+            "microseconds_per_iteration": 14456.562506909122,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 2.3424062728881836,
+            "total_retained_mb": 0.3852214813232422,
+            "objects_allocated": 45743,
+            "objects_retained": 7432
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 75.24106607326125,
+            "stddev_percent": 27.99922579504679,
+            "microseconds_per_iteration": 13290.614450176889,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 2.3424062728881836,
+            "total_retained_mb": 0.3852214813232422,
+            "objects_allocated": 45743,
+            "objects_retained": 7432
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.9193481814106915,
+            "speedup_text": "1.09x slower",
+            "time_reduction_percent": -8.772717477458048,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      }
+    },
+    "xml_parser": {
+      "simple_tag": {
+        "plurimath": {
+          "timing": {
+            "ips": 3128.683554313937,
+            "stddev_percent": 86.94064819057229,
+            "microseconds_per_iteration": 319.62324812976544,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.03134918212890625,
+            "total_retained_mb": 0.001220703125,
+            "objects_allocated": 472,
+            "objects_retained": 13
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 8867.511335371897,
+            "stddev_percent": 4.292885606830856,
+            "microseconds_per_iteration": 112.77121191952338,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.03134918212890625,
+            "total_retained_mb": 0.001220703125,
+            "objects_allocated": 472,
+            "objects_retained": 13
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.3528254361326646,
+            "speedup_text": "2.83x slower",
+            "time_reduction_percent": -183.426277583908,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "nested_tags": {
+        "plurimath": {
+          "timing": {
+            "ips": 5768.290077684085,
+            "stddev_percent": 3.2136119066675817,
+            "microseconds_per_iteration": 173.3616004972986,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.045013427734375,
+            "total_retained_mb": 0.00156402587890625,
+            "objects_allocated": 728,
+            "objects_retained": 18
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 5783.986756481395,
+            "stddev_percent": 1.8458815626138518,
+            "microseconds_per_iteration": 172.89112892235175,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.045013427734375,
+            "total_retained_mb": 0.00156402587890625,
+            "objects_allocated": 728,
+            "objects_retained": 18
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.9972861834824016,
+            "speedup_text": "1.0x slower",
+            "time_reduction_percent": -0.27212013587936124,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "with_attributes": {
+        "plurimath": {
+          "timing": {
+            "ips": 6402.288121867514,
+            "stddev_percent": 5.387406926502688,
+            "microseconds_per_iteration": 156.19415761443508,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.0411834716796875,
+            "total_retained_mb": 0.00167083740234375,
+            "objects_allocated": 666,
+            "objects_retained": 20
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 6431.341239511659,
+            "stddev_percent": 3.3221616625440986,
+            "microseconds_per_iteration": 155.48856183472103,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.0411834716796875,
+            "total_retained_mb": 0.00167083740234375,
+            "objects_allocated": 666,
+            "objects_retained": 20
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.9954825725206968,
+            "speedup_text": "1.0x slower",
+            "time_reduction_percent": -0.4537927236500483,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "multiple_siblings": {
+        "plurimath": {
+          "timing": {
+            "ips": 5705.5728768321715,
+            "stddev_percent": 8.418450195430689,
+            "microseconds_per_iteration": 175.26723811741348,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.043670654296875,
+            "total_retained_mb": 0.00197601318359375,
+            "objects_allocated": 682,
+            "objects_retained": 24
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 5800.792013480201,
+            "stddev_percent": 4.905192216845493,
+            "microseconds_per_iteration": 172.39025251657787,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.043670654296875,
+            "total_retained_mb": 0.00197601318359375,
+            "objects_allocated": 682,
+            "objects_retained": 24
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.9835851489888358,
+            "speedup_text": "1.02x slower",
+            "time_reduction_percent": -1.6688795096224673,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      }
+    },
+    "calc_parser": {
+      "simple_addition": {
+        "plurimath": {
+          "timing": {
+            "ips": 10235.541583927115,
+            "stddev_percent": 38.13644842894532,
+            "microseconds_per_iteration": 97.69878728940942,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.0236663818359375,
+            "total_retained_mb": 0.0,
+            "objects_allocated": 344,
+            "objects_retained": 0
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 13089.783345406398,
+            "stddev_percent": 6.1915150902076865,
+            "microseconds_per_iteration": 76.39545847417943,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.0236663818359375,
+            "total_retained_mb": 0.0,
+            "objects_allocated": 344,
+            "objects_retained": 0
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.7819488920356407,
+            "speedup_text": "1.28x slower",
+            "time_reduction_percent": -27.885595872731383,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": "NaN",
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "complex_expression": {
+        "plurimath": {
+          "timing": {
+            "ips": 4593.793582983005,
+            "stddev_percent": 30.14845830281266,
+            "microseconds_per_iteration": 217.6850095538347,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.0445556640625,
+            "total_retained_mb": 0.00182342529296875,
+            "objects_allocated": 769,
+            "objects_retained": 20
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 5564.256083453612,
+            "stddev_percent": 2.9294572346593526,
+            "microseconds_per_iteration": 179.71854368343915,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.0445556640625,
+            "total_retained_mb": 0.00182342529296875,
+            "objects_allocated": 769,
+            "objects_retained": 20
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.8255898927160337,
+            "speedup_text": "1.21x slower",
+            "time_reduction_percent": -21.125513868658242,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "nested_parens": {
+        "plurimath": {
+          "timing": {
+            "ips": 4214.328593625281,
+            "stddev_percent": 30.261671628602944,
+            "microseconds_per_iteration": 237.28572126830113,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.04742431640625,
+            "total_retained_mb": 0.00148773193359375,
+            "objects_allocated": 831,
+            "objects_retained": 16
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 4825.179684810082,
+            "stddev_percent": 6.188041254495975,
+            "microseconds_per_iteration": 207.2461680853155,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.04742431640625,
+            "total_retained_mb": 0.00148773193359375,
+            "objects_allocated": 831,
+            "objects_retained": 16
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.8734034520812164,
+            "speedup_text": "1.14x slower",
+            "time_reduction_percent": -14.494624175931413,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": 0.0,
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "decimal_numbers": {
+        "plurimath": {
+          "timing": {
+            "ips": 8713.993164700647,
+            "stddev_percent": 40.03018538008275,
+            "microseconds_per_iteration": 114.75795093010646,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.027374267578125,
+            "total_retained_mb": 0.0,
+            "objects_allocated": 403,
+            "objects_retained": 0
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 11620.68347936564,
+            "stddev_percent": 2.9658943598187313,
+            "microseconds_per_iteration": 86.05345819595362,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.027374267578125,
+            "total_retained_mb": 0.0,
+            "objects_allocated": 403,
+            "objects_retained": 0
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.7498692465183927,
+            "speedup_text": "1.33x slower",
+            "time_reduction_percent": -33.356582449934116,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": "NaN",
+            "plurimath_less_objects": false
+          }
+        }
+      },
+      "large_expression": {
+        "plurimath": {
+          "timing": {
+            "ips": 1090.8376264718415,
+            "stddev_percent": 46.83539760803989,
+            "microseconds_per_iteration": 916.7267205792646,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.13165283203125,
+            "total_retained_mb": 0.0,
+            "objects_allocated": 2581,
+            "objects_retained": 0
+          }
+        },
+        "original": {
+          "timing": {
+            "ips": 1339.2935336151322,
+            "stddev_percent": 36.525076258954485,
+            "microseconds_per_iteration": 746.6623073290864,
+            "samples": 10
+          },
+          "memory": {
+            "total_allocated_mb": 0.13165283203125,
+            "total_retained_mb": 0.0,
+            "objects_allocated": 2581,
+            "objects_retained": 0
+          }
+        },
+        "comparison": {
+          "timing": {
+            "speedup": 0.8144873391028493,
+            "speedup_text": "1.23x slower",
+            "time_reduction_percent": -22.776616896401514,
+            "plurimath_faster": false
+          },
+          "memory": {
+            "allocated_reduction_percent": 0.0,
+            "retained_reduction_percent": "NaN",
+            "plurimath_less_objects": false
+          }
+        }
+      }
+    }
+  }
+}

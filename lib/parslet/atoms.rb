@@ -21,6 +21,7 @@ module Parslet::Atoms
   require 'parslet/atoms/ignored'
   require 'parslet/atoms/named'
   require 'parslet/atoms/lookahead'
+  require 'parslet/atoms/cut'
   require 'parslet/atoms/alternative'
   require 'parslet/atoms/sequence'
   require 'parslet/atoms/repetition'

@@ -162,6 +162,34 @@ JavaScript execution, but the core parsing functionality is fully supported.
 * `rake benchmark:all` - Run comprehensive benchmark suite (all categories)
 * `rake benchmark:export` - Run benchmarks and export results to JSON/YAML files
 
+===== Comparative Benchmarks
+
+Plurimath-parslet includes a comprehensive comparative benchmarking system
+that measures performance against the original parslet 2.0 gem:
+
+* `rake benchmark:comparative:run` - Run full comparative benchmark suite
+* `rake benchmark:comparative:summary` - Show quick benchmark summary
+* `rake benchmark:comparative:report` - Regenerate reports from existing data
+* `rake benchmark:comparative:clean` - Clean benchmark results
+* `rake benchmark:comparative:validate` - Validate benchmark infrastructure
+
+The comparative benchmark system tests multiple parser types (JSON, XML,
+Calculator) with various input complexities and generates detailed reports
+showing:
+
+* Performance speedup/slowdown ratios
+* Memory allocation improvements
+* Detailed metrics per test case
+* ASCII bar charts for visual comparison
+* Executive summary with key findings
+
+Results are available in:
+
+* link:docs/comparative-benchmark.adoc[Comparative Benchmark Report] -
+  Human-readable AsciiDoc report
+* link:docs/comparative-results.json[Comparative Results JSON] -
+  Machine-readable detailed results
+
 ===== What gets benchmarked
 
 The benchmark suite measures parsing performance across different scenarios:

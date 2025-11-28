@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Names a match to influence tree construction.
 #
 # Example:
@@ -14,6 +16,9 @@ class Parslet::Atoms::Named < Parslet::Atoms::Base
   end
 
   def apply(source, context, consume_all)
+    # Phase 52: Cache @parslet ivar to reduce lookup overhead
+    parslet = @parslet
+
     success, value = result = parslet.apply(source, context, consume_all)
 
     return result unless success
@@ -31,6 +36,13 @@ class Parslet::Atoms::Named < Parslet::Atoms::Base
   def to_s_inner(prec)
     "#{name}:#{parslet.to_s(prec)}"
   end
+
+  # FIRST set of named atom is same as wrapped parslet
+  # Named is just a wrapper that doesn't change matching behavior
+  def compute_first_set
+    parslet.first_set
+  end
+
 private
   def produce_return_value(val)
     { name => flatten(val, true) }

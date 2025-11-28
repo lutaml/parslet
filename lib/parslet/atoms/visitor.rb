@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Augments all parslet atoms with an accept method that will call back 
 # to the visitor given.
 

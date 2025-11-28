@@ -1,5 +1,5 @@
 # Starts a new scope in the parsing process. Please also see the #captures
-# method. 
+# method.
 #
 class Parslet::Atoms::Scope < Parslet::Atoms::Base
   attr_reader :block
@@ -8,18 +8,20 @@ class Parslet::Atoms::Scope < Parslet::Atoms::Base
 
     @block = block
   end
-  
+
   def cached?
     false
   end
-  
+
   def apply(source, context, consume_all)
+    # Phase 55: Cache @block ivar to reduce lookup overhead
+    block = @block
     context.scope do
       parslet = block.call
       return parslet.apply(source, context, consume_all)
     end
   end
-  
+
   def to_s_inner(prec)
     "scope { #{block.call.to_s(prec)} }"
   end

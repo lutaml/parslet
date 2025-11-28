@@ -14,12 +14,14 @@ class Parslet::Atoms::Ignored < Parslet::Atoms::Base
   end
 
   def apply(source, context, consume_all)
+    # Phase 55: Cache @parslet ivar to reduce lookup overhead
+    parslet = @parslet
     success, _ = result = parslet.apply(source, context, consume_all)
 
     return result unless success
     succ(nil)
   end
-  
+
   def to_s_inner(prec)
     "ignored(#{parslet.to_s(prec)})"
   end
