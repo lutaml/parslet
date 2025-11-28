@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # A sequence of parslets, matched from left to right. Denoted by '>>'
 #
 # Example:
@@ -10,12 +11,15 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
     super()
 
     @parslets = parslets
+
+    # Phase 58: Pre-compute and freeze error messages to avoid allocations
+    @error_msgs = {
+      failed: "Failed to match sequence (#{inspect})".freeze
+    }.freeze
   end
 
   def error_msgs
-    @error_msgs ||= {
-      failed: "Failed to match sequence (#{inspect})"
-    }
+    @error_msgs
   end
 
   def >>(parslet)
@@ -57,6 +61,9 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
   end
 
   def try(source, context, consume_all)
+    # Phase 52: Cache @parslets ivar to reduce lookup overhead in hot loop
+    parslets = @parslets
+
     # Fast paths for common sequence sizes (avoid Array.new allocation)
     case parslets.size
     when 1
@@ -102,5 +109,21 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
   precedence SEQUENCE
   def to_s_inner(prec)
     parslets.map { |p| p.to_s(prec) }.join(' ')
+  end
+
+  # FIRST set of sequence is FIRST of first element
+  # If first element can match empty (contains EPSILON), include FIRST of second, etc.
+  def compute_first_set
+    return Set.new if parslets.empty?
+
+    result = Set.new
+    parslets.each do |p|
+      p_first = p.first_set
+      # Add all non-EPSILON terminals from this parslet
+      result.merge(p_first.reject { |x| x == Parslet::FirstSet::EPSILON })
+      # If this parslet doesn't match empty, stop here
+      break unless p_first.include?(Parslet::FirstSet::EPSILON)
+    end
+    result
   end
 end

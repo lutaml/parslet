@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Base class for all parslets, handles orchestration of calls and implements
 # a lot of the operator and chaining methods.
 #
@@ -7,6 +9,7 @@ class Parslet::Atoms::Base
   include Parslet::Atoms::Precedence
   include Parslet::Atoms::DSL
   include Parslet::Atoms::CanFlatten
+  include Parslet::FirstSet
 
   # Parslet label as provided in grammar
   attr_accessor :label
@@ -151,13 +154,42 @@ private
 
   # Produces an instance of Success and returns it.
   #
-  # Optimization: For nil results (common in lookahead, etc), use a pre-allocated
-  # constant to avoid array allocation on every success
+  # Phase 57a-57b: Frozen constants for common result patterns to reduce allocations.
+  # These constants are used extensively in hot paths to avoid creating new arrays.
   #
   SUCCESS_NIL = [true, nil].freeze
 
+  # Common patterns for repetition results with empty values
+  # Format: [true, [tag]] where tag is the repetition marker
+  # Pre-allocated for common tags to avoid array creation
+  EMPTY_ARRAY = [].freeze
+
+  # Phase 57b: Additional frozen constants for tagged empty arrays
+  # These are common in repetitions that match 0 times (.maybe, .repeat(0,n))
+  EMPTY_REPETITION_ARRAY = [:repetition].freeze
+  SUCCESS_EMPTY_REPETITION = [true, EMPTY_REPETITION_ARRAY].freeze
+
+  EMPTY_SEQUENCE_ARRAY = [:sequence].freeze
+  SUCCESS_EMPTY_SEQUENCE = [true, EMPTY_SEQUENCE_ARRAY].freeze
+
+  # Phase 57c: Additional frozen constants for common patterns
+  EMPTY_HASH = {}.freeze
+  SUCCESS_EMPTY_HASH = [true, EMPTY_HASH].freeze
+
+  # Common single-element arrays for captures and tags
+  EMPTY_CAPTURE_ARRAY = [:capture].freeze
+  SUCCESS_EMPTY_CAPTURE = [true, EMPTY_CAPTURE_ARRAY].freeze
+
   def succ(result)
     return SUCCESS_NIL if result.nil?
+    # Check for empty array (common in repetitions with 0 matches)
+    return [true, EMPTY_ARRAY] if result.equal?(EMPTY_ARRAY)
+    # Check for empty hash (common in named captures with no matches)
+    return SUCCESS_EMPTY_HASH if result.equal?(EMPTY_HASH)
+    # Check for common tagged empty arrays
+    return SUCCESS_EMPTY_REPETITION if result.equal?(EMPTY_REPETITION_ARRAY)
+    return SUCCESS_EMPTY_SEQUENCE if result.equal?(EMPTY_SEQUENCE_ARRAY)
+    return SUCCESS_EMPTY_CAPTURE if result.equal?(EMPTY_CAPTURE_ARRAY)
     [true, result]
   end
 end

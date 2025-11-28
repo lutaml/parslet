@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Parslet::Atoms::Base
   
   # Packages the common idiom

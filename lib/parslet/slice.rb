@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # A slice is a small part from the parse input. A slice mainly behaves like
 # any other string, except that it remembers where it came from (offset in
 # original input).

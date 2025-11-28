@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Matches a string of characters.
 #
 # Example:
@@ -12,6 +14,13 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
     @str = str.to_s
     @len = str.size
 
+    # Phase 58: Pre-compute and freeze error messages to avoid allocations
+    # Error messages are accessed frequently in hot paths
+    @error_msgs = {
+      premature: 'Premature end of input'.freeze,
+      failed: "Expected #{@str.inspect}, but got ".freeze
+    }.freeze
+
     # Optimize: For single-character strings, store the character directly
     # to avoid regex matching overhead
     if @len == 1
@@ -24,10 +33,7 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
   end
 
   def error_msgs
-    @error_msgs ||= {
-      premature: 'Premature end of input',
-      failed: "Expected #{str.inspect}, but got "
-    }
+    @error_msgs
   end
 
   def try(source, context, consume_all)
@@ -68,5 +74,11 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
   # Caching adds overhead without benefit for such simple operations.
   def cached?
     false
+  end
+
+  # FIRST set for Str is just the string itself
+  # This allows cut operator insertion when alternatives have disjoint FIRST sets
+  def compute_first_set
+    Set.new([self])
   end
 end
