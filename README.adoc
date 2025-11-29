@@ -188,7 +188,7 @@ With all optimizations enabled:
 * With YJIT: **27.8x faster** (13.3x × 2.09x)
 * With frozen literals (Phase 50b complete): **~33-37x faster**
 
-See link:docs/optimizations-over-default.adoc[Optimization Guide] for detailed best practices.
+See link:docs/optimization-guide.md[Optimization Guide] for detailed performance tuning and link:docs/migration-guide.md[Migration Guide] for upgrading from parslet 2.0.
 
 == Development
 
