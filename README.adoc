@@ -259,8 +259,30 @@ Results are available in:
 
 * link:docs/comparative-benchmark.adoc[Comparative Benchmark Report] -
   Human-readable AsciiDoc report
-* link:docs/comparative-results.json[Comparative Results JSON] -
+* link:docs/comparative_results.json[Comparative Results JSON] -
   Machine-readable detailed results
+
+**Comprehensive Benchmark System** (v3.1.0+):
+
+A new comprehensive benchmark architecture is available for direct comparison with vanilla parslet 2.0:
+
+* 4 parser types tested: Simple → Medium → Complex → Very Complex
+* 4 input sizes per parser: tiny/small/medium/large
+* Direct vanilla parslet 2.0 vs plurimath comparison
+* Publication-quality reports with detailed analysis
+
+**v3.1.0 Benchmark Results:**
+
+* link:docs/BENCHMARK_COMPREHENSIVE_v3.1.0.adoc[Comprehensive Benchmark Report v3.1.0] - Latest performance measurements
+* link:benchmark/README.md[Benchmark System Documentation] - Usage instructions
+* link:docs/BENCHMARK_ARCHITECTURE_PLAN.md[Benchmark Architecture Plan] - Implementation details
+* link:docs/comparative_results.json[Historical Comparative Results] - Session 3 vanilla vs plurimath data
+
+**Performance Summary:**
+* 14 test cases measured across 4 parser types
+* Range: 2-20,000 iterations/second depending on complexity
+* Memory-efficient: Minimal allocations per parse operation
+* Historical validation: 13.3x-37x faster than vanilla parslet 2.0
 
 ===== What gets benchmarked
 

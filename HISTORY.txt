@@ -26,6 +26,12 @@
   + Migration guide from parslet 2.0 (docs/migration-guide.md - 593 lines)
   + Performance benchmarking methodology documented
   + Comparative benchmark reports
+  + Professional benchmark infrastructure (Session 6):
+    - Automated dual-version comparison (vanilla 2.0 vs plurimath)
+    - 4 parser types × 4 input sizes = 16 test configurations
+    - Adaptive iteration counts for efficient benchmarking
+    - Publication-quality AsciiDoc reports
+    - See benchmark/README.md and docs/BENCHMARK_COMPREHENSIVE_v3.1.0.adoc
   + CI integration guide (benchmark/CI_INTEGRATION.md)
   + Updated README.adoc with comprehensive Performance section
   + Updated docs/performance.adoc with all optimization phases
