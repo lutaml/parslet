@@ -86,22 +86,50 @@ module Parslet
   end
 
   module ClassMethods
-    # Enable automatic quantifier simplification for all rules in this parser.
-    # When enabled, redundant repetitions like repeat(1,1) are automatically
-    # unwrapped during rule construction.
+    # Enable automatic rule optimization for all rules in this parser.
+    # This includes quantifier simplification, sequence optimization,
+    # choice optimization, and lookahead optimization.
+    #
+    # NOTE: As of v3.1.0, optimizations are ENABLED BY DEFAULT for best
+    # performance. Use disable_optimization! to opt-out if needed.
     #
     #   class MyParser < Parslet::Parser
-    #     optimize_rules!
+    #     # Optimizations enabled by default
     #     rule(:optimized) { str('a').repeat(1, 1) }  # automatically becomes str('a')
     #   end
     #
-    def optimize_rules!
-      @optimize_rules = true
+    #   class LegacyParser < Parslet::Parser
+    #     disable_optimization!  # Opt-out for compatibility
+    #     rule(:unoptimized) { str('a').repeat(1, 1) }  # remains as is
+    #   end
+    #
+    def optimize_rules!(enable = true)
+      @optimize_rules = enable
+    end
+    
+    # Disable automatic rule optimization.
+    # Use this for compatibility with parsers that rely on specific
+    # unoptimized behavior or for debugging purposes.
+    #
+    # @example Disable optimization
+    #   class MyParser < Parslet::Parser
+    #     disable_optimization!
+    #     # rules will not be optimized
+    #   end
+    #
+    def disable_optimization!
+      @optimize_rules = false
     end
 
-    # Check if rule optimization is enabled
+    # Check if rule optimization is enabled.
+    # As of v3.1.0, defaults to TRUE for best performance.
+    #
+    # @return [Boolean] true if optimization enabled
     def optimize_rules?
-      @optimize_rules ||= false
+      # Default to true (enabled) for v3.1.0+
+      # Use disable_optimization! to opt-out
+      @optimize_rules = true if @optimize_rules.nil?
+      @optimize_rules
     end
 
     # Define an entity for the parser. This generates a method of the same

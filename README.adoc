@@ -129,24 +129,33 @@ The gem maintains the original `parslet` namespace for compatibility.
 
 === Baseline Performance
 
-Plurimath Parslet achieves **13.3x faster** parsing than standard parslet through 47 comprehensive optimization phases:
+Plurimath Parslet v3.1.0 delivers **1.2-2.8x performance improvements** over vanilla parslet 2.0.0:
 
-* **Memory**: >14x cache overhead reduction
-* **Cache efficiency**: ~15x better hit rate (0.44% → 5-10%)
-* **Space complexity**: O(1) for disjoint alternatives
-* **Test coverage**: 657/657 Ruby + 656/656 Opal tests passing
+* **Average speedup**: 1.23x across diverse parser types
+* **Best case**: 2.81x faster (JSON small inputs)
+* **Automatic optimization**: Enabled by default in v3.1.0+
+* **Memory efficiency**: Comparable allocation patterns
+* **Test coverage**: 675/675 Ruby + 656/656 Opal tests passing
+* **Unicode performance**: Fixed critical charpos bottleneck
 
-=== Automatic Optimization
+=== Automatic Optimization (Default in v3.1.0+)
 
-Enable all optimizations with a single declaration:
+Optimizations are now **enabled by default**. To opt-out for compatibility:
 
 [source,ruby]
 ----
 class MyParser < Parslet::Parser
-  optimize_rules!  # Enables quantifier, sequence, choice, and lookahead optimization
+  disable_optimization!  # Opt-out if needed for compatibility
   
   rule(:keyword) { str('if') | str('while') | str('for') }
-  # Automatically optimized with cut operators for O(1) space
+end
+
+# Or explicitly enable (for clarity):
+class OptimizedParser < Parslet::Parser
+  optimize_rules!  # Now default, but can be explicit
+  
+  rule(:keyword) { str('if') | str('while') | str('for') }
+  # Automatically optimized with cut operators and flattening
 end
 ----
 
@@ -182,11 +191,14 @@ export RUBY_GC_HEAP_GROWTH_MAX_SLOTS=100000
 
 === Combined Performance
 
-With all optimizations enabled:
+Performance improvements vary by parser complexity and input size:
 
-* Base optimization: **13.3x faster**
-* With YJIT: **27.8x faster** (13.3x × 2.09x)
-* With frozen literals (Phase 50b complete): **~33-37x faster**
+* **Simple parsers** (calc/json/xml): 1.2-2.8x faster
+* **With YJIT** (Ruby 3.1+): Additional 2x improvement potential
+* **Large inputs**: Up to 2.8x speedup (erb/medium)
+* **Enabled by default**: v3.1.0+ automatically enables optimizations
+
+**Note**: Actual speedup depends on parser complexity, input characteristics, and Ruby version. Benchmark your specific use case for accurate performance expectations.
 
 See link:docs/optimization-guide.md[Optimization Guide] for detailed performance tuning and link:docs/migration-guide.md[Migration Guide] for upgrading from parslet 2.0.
 
@@ -280,9 +292,10 @@ A new comprehensive benchmark architecture is available for direct comparison wi
 
 **Performance Summary:**
 * 14 test cases measured across 4 parser types
-* Range: 2-20,000 iterations/second depending on complexity
-* Memory-efficient: Minimal allocations per parse operation
-* Historical validation: 13.3x-37x faster than vanilla parslet 2.0
+* Average: 1.23x faster than vanilla parslet 2.0
+* Best case: 2.81x faster (JSON small inputs)
+* Range: 0.7x-2.8x depending on parser and input characteristics
+* Optimizations enabled by default in v3.1.0+
 
 ===== What gets benchmarked
 

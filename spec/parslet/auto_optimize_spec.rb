@@ -61,6 +61,8 @@ describe 'Automatic Rule Optimization' do
 
   context 'when optimize_rules! is not called' do
     class UnoptimizedParser < Parslet::Parser
+      # As of v3.1.0, optimizations are enabled by default
+      # This class tests the default behavior
       rule(:redundant) {
         str('a').repeat(1, 1) >>
         str('b').repeat(1, 1)
@@ -69,14 +71,37 @@ describe 'Automatic Rule Optimization' do
       root :redundant
     end
 
-    it 'does not automatically optimize rules' do
+    it 'still works with default optimization enabled' do
       parser = UnoptimizedParser.new
-      # Should still work, just not optimized
+      # Should work and be optimized by default
       expect(parser.redundant.parse('ab')).to be_truthy
     end
 
-    it 'defaults optimize_rules? to false' do
-      expect(UnoptimizedParser.optimize_rules?).to be false
+    it 'defaults optimize_rules? to true (v3.1.0+)' do
+      # As of v3.1.0, optimizations are enabled by default
+      expect(UnoptimizedParser.optimize_rules?).to be true
+    end
+  end
+  
+  context 'when optimization is explicitly disabled' do
+    class ExplicitlyUnoptimizedParser < Parslet::Parser
+      disable_optimization!  # Explicit opt-out
+      
+      rule(:redundant) {
+        str('a').repeat(1, 1) >>
+        str('b').repeat(1, 1)
+      }
+
+      root :redundant
+    end
+
+    it 'respects explicit disable_optimization!' do
+      expect(ExplicitlyUnoptimizedParser.optimize_rules?).to be false
+    end
+    
+    it 'still parses correctly without optimization' do
+      parser = ExplicitlyUnoptimizedParser.new
+      expect(parser.redundant.parse('ab')).to be_truthy
     end
   end
 
