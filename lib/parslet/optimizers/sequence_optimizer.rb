@@ -66,18 +66,19 @@ module Parslet
           current = parslets[i]
 
           if current.is_a?(Parslet::Atoms::Str)
-            # Look ahead for consecutive Str atoms
-            merged_str = current.str
+            # Look ahead for consecutive Str atoms using Rope for O(1) append
+            rope = Parslet::Rope.new.append(current.str)
             j = i + 1
 
             while j < parslets.size && parslets[j].is_a?(Parslet::Atoms::Str)
-              merged_str = merged_str + parslets[j].str
+              rope.append(parslets[j].str)
               j += 1
             end
 
             # Create merged Str if we found consecutive strings
+            # O(n) join happens once at the end instead of O(n²) repeated concatenation
             if j > i + 1
-              result << Parslet::Atoms::Str.new(merged_str)
+              result << Parslet::Atoms::Str.new(rope.to_s)
               i = j
             else
               result << current

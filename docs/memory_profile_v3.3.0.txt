@@ -1,0 +1,405 @@
+=== Memory Profiling v3.3.0 - Position Elimination Check ===
+Parser: JSON
+Iterations: 1000
+
+=== Detailed Report ===
+Total allocated: 80369908 bytes (1628078 objects)
+Total retained:  26308 bytes (239 objects)
+
+allocated memory by gem
+-----------------------------------
+  80369908  parslet/lib
+
+allocated memory by file
+-----------------------------------
+  21042832  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb
+  12587040  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb
+  10541360  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb
+   9249120  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb
+   9160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb
+   6487400  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb
+   3841480  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/named.rb
+   2363824  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb
+   1680000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/slice.rb
+   1447236  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb
+    760864  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb
+    512000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb
+    480440  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb
+    200000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/scope.rb
+      8480  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/entity.rb
+      4048  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb
+      3224  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb
+       560  /Users/mulgogi/src/plurimath/parslet/lib/parslet/rope.rb
+
+allocated memory by location
+-----------------------------------
+  12120000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:96
+   9240000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:51
+   8240000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:209
+   5720000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+   5720000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:45
+   5280000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:75
+   4120000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:49
+   3840000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/named.rb:48
+   2560000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:90
+   2520000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:150
+   1680000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/slice.rb:116
+   1520000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:175
+   1400000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:37
+   1320000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:77
+   1240000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:53
+   1120000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:90
+   1080000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:56
+   1080000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:80
+   1040000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:55
+    880000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:84
+    800000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:178
+    760000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:180
+    755040  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:23
+    640000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:104
+    480000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:78
+    480000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:185
+    480000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:46
+    480000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:100
+    440000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:51
+    360000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:82
+    360000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb:12
+    320000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:44
+    240000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:76
+    240000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:30
+    240000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:22
+    160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:29
+    160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:132
+    160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:39
+    160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:40
+    160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:67
+    160000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/scope.rb:12
+    112000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:19
+    112000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb:39
+     80000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:163
+     40000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:32
+     40000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:32
+     40000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:33
+     40000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/scope.rb:33
+     40000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:25
+     40000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb:11
+
+allocated memory by class
+-----------------------------------
+  59490280  Array
+   6955584  String
+   6560000  Parslet::Slice
+   5773120  Hash
+    519636  Regexp
+    360000  Class
+    224000  StringScanner
+    160880  Proc
+    160000  Parslet::Atoms::Context
+     40000  Parslet::Scope
+     40000  Parslet::Scope::Binding
+     40000  Parslet::Source
+     40000  Parslet::Source::LineCache
+      1440  Parslet::Atoms::Str
+      1240  Parslet::Atoms::Sequence
+      1120  Parslet::Atoms::Repetition
+       880  Parslet::Atoms::Entity
+       560  Parslet::Rope
+       400  Parslet::Atoms::Named
+       360  Parslet::Atoms::Alternative
+       304  Parslet::Atoms::Re
+       104  Parslet::Atoms::Lookahead
+
+allocated objects by gem
+-----------------------------------
+   1628078  parslet/lib
+
+allocated objects by file
+-----------------------------------
+    514038  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb
+    297001  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb
+    193000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb
+    178287  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb
+    154121  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb
+    119108  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb
+     50060  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb
+     42000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/slice.rb
+     36085  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb
+     24029  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/named.rb
+      9003  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb
+      6008  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb
+      3000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb
+      2000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/scope.rb
+       212  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/entity.rb
+        65  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb
+        47  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb
+        14  /Users/mulgogi/src/plurimath/parslet/lib/parslet/rope.rb
+
+allocated objects by location
+-----------------------------------
+    303000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:96
+    206000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:209
+    154000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:51
+    143000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+    143000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:45
+     91000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:49
+     88000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:75
+     54000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:90
+     42000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/slice.rb:116
+     39000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:150
+     35000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:37
+     33000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:77
+     31000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:53
+     26000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:55
+     24000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/named.rb:48
+     19000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:175
+     19000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:180
+     18000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:56
+     18000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:178
+     18000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:80
+     14000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:90
+     12000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:185
+     11000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:51
+     11000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:84
+      8000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:44
+      8000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:100
+      7001  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:23
+      6000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:76
+      6000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:46
+      6000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:82
+      4000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:104
+      4000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:132
+      4000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:67
+      3000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:78
+      2000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/can_flatten.rb:163
+      2000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:30
+      2000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:22
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:29
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:32
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:32
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:39
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/context.rb:40
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:33
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/scope.rb:12
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/scope.rb:33
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:19
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:25
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb:11
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb:12
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source/line_cache.rb:39
+
+allocated objects by class
+-----------------------------------
+   1243200  Array
+    173668  String
+    164000  Parslet::Slice
+     36076  Hash
+      2011  Proc
+      2000  StringScanner
+      1009  Regexp
+      1000  Class
+      1000  Parslet::Atoms::Context
+      1000  Parslet::Scope
+      1000  Parslet::Scope::Binding
+      1000  Parslet::Source
+      1000  Parslet::Source::LineCache
+        31  Parslet::Atoms::Sequence
+        18  Parslet::Atoms::Str
+        14  Parslet::Atoms::Repetition
+        14  Parslet::Rope
+        11  Parslet::Atoms::Entity
+        10  Parslet::Atoms::Named
+         9  Parslet::Atoms::Alternative
+         6  Parslet::Atoms::Re
+         1  Parslet::Atoms::Lookahead
+
+retained memory by gem
+-----------------------------------
+     26308  parslet/lib
+
+retained memory by file
+-----------------------------------
+      5840  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb
+      5120  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb
+      4676  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb
+      4048  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb
+      3360  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb
+      2504  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb
+       520  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb
+       240  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb
+
+retained memory by location
+-----------------------------------
+      3236  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:18
+      2880  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:19
+      2560  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:16
+      2240  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:26
+      1760  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:17
+      1520  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:30
+      1440  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:227
+      1440  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+      1120  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:27
+       960  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:21
+       880  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:168
+       880  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:183
+       800  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:61
+       640  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:57
+       560  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:26
+       560  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:37
+       544  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:164
+       480  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:23
+       400  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:25
+       400  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:101
+       240  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:69
+       224  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:215
+       160  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:21
+       120  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:41
+       104  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:80
+        80  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:239
+        40  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:22
+        40  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:23
+
+retained memory by class
+-----------------------------------
+      9344  Hash
+      5320  String
+      4636  Regexp
+      1440  Parslet::Atoms::Str
+      1120  Parslet::Atoms::Repetition
+      1080  Array
+       880  Parslet::Atoms::Entity
+       880  Proc
+       640  Parslet::Atoms::Sequence
+       400  Parslet::Atoms::Named
+       304  Parslet::Atoms::Re
+       160  Parslet::Atoms::Alternative
+       104  Parslet::Atoms::Lookahead
+
+retained objects by gem
+-----------------------------------
+       239  parslet/lib
+
+retained objects by file
+-----------------------------------
+        48  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb
+        47  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb
+        47  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb
+        39  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb
+        28  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb
+        21  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb
+         6  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb
+         3  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb
+
+retained objects by location
+-----------------------------------
+        18  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:227
+        18  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:19
+        18  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+        16  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:57
+        16  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:16
+        16  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:17
+        16  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/sequence.rb:61
+        14  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:26
+        14  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:27
+        11  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:168
+        11  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:183
+        10  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:101
+         9  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:18
+         7  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:26
+         7  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:37
+         6  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:69
+         6  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:21
+         6  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:23
+         4  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:215
+         4  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:25
+         3  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:30
+         2  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:239
+         2  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/alternative.rb:41
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet.rb:164
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/dsl.rb:80
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:21
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:22
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/lookahead.rb:23
+
+retained objects by class
+-----------------------------------
+        61  String
+        56  Hash
+        22  Array
+        18  Parslet::Atoms::Str
+        16  Parslet::Atoms::Sequence
+        14  Parslet::Atoms::Repetition
+        11  Parslet::Atoms::Entity
+        11  Proc
+        10  Parslet::Atoms::Named
+         9  Regexp
+         6  Parslet::Atoms::Re
+         4  Parslet::Atoms::Alternative
+         1  Parslet::Atoms::Lookahead
+
+
+Allocated String Report
+-----------------------------------
+     24000  "\""
+     24000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+     12000  "e"
+     12000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      9000  "a"
+      9000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      8000  " "
+      8000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      8000  "{"
+      8000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      6000  ","
+      6000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      6000  "b"
+      6000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      6000  "o"
+      6000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+      5000  "1"
+      4000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+      1000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:23
+
+      5000  "["
+      5000  /Users/mulgogi/src/plurimath/parslet/lib/parslet/source.rb:44
+
+
+Retained String Report
+-----------------------------------
+         3  "Expected \"\\\"\", but got "
+         3  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         2  "Expected \"-\", but got "
+         2  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         2  "Expected at least 1 of DIGIT"
+         2  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/repetition.rb:27
+
+         2  "Failed to match ."
+         2  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/re.rb:23
+
+         1  "Expected \"+\", but got "
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         1  "Expected \",\", but got "
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         1  "Expected \"0\", but got "
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         1  "Expected \":\", but got "
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         1  "Expected \"[\", but got "
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+
+         1  "Expected \"\\\\\", but got "
+         1  /Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/str.rb:21
+

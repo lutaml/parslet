@@ -1,0 +1,60 @@
+---
+title: Installation
+nav_order: 1
+parent: Core topics
+---
+
+= Installation
+
+== Using RubyGems
+
+Add to your Gemfile:
+
+[source,ruby]
+----
+gem 'plurimath-parslet'
+----
+
+Then run:
+
+[source,bash]
+----
+bundle install
+----
+
+Or install directly:
+
+[source,bash]
+----
+gem install plurimath-parslet
+----
+
+== Version Requirements
+
+* Ruby 2.7.0 or higher
+* No other dependencies required
+
+== Verifying Installation
+
+[source,ruby]
+----
+require 'parslet'
+
+puts Parslet::VERSION  # Should show 3.1.0 or higher
+
+# Quick test
+class TestParser < Parslet::Parser
+  rule(:word) { match['a-z'].repeat(1) }
+  root(:word)
+end
+
+parser = TestParser.new
+result = parser.parse('hello')
+puts result  # Should output: "hello"@0
+----
+
+== Next Steps
+
+* link:migration[Migration Guide] - Migrating from vanilla parslet
+* link:optimizations[Optimizations] - Learn about performance improvements
+* link:../_guides/[Guides] - Start building parsers

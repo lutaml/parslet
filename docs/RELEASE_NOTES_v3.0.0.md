@@ -154,7 +154,7 @@ plurimath-parslet v3.0.0 is a **drop-in replacement** for Parslet:
 - **v3.1.0**: Additional pattern optimizations
 - **v3.2.0**: Enhanced error messages
 - **v3.3.0**: Parser introspection tools
-- **v3.4.0**: Performance monitoring utilities
+- **v3.1.0**: Performance monitoring utilities
 
 ### v4.0 (Architectural Overhaul)
 

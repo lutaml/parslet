@@ -1,0 +1,85 @@
+==================================
+  Mode: cpu(1000)
+  Samples: 264 (0.00% miss rate)
+  GC: 177 (67.05%)
+==================================
+     TOTAL    (pct)     SAMPLES    (pct)     FRAME
+        97  (36.7%)          97  (36.7%)     (sweeping)
+       177  (67.0%)          78  (29.5%)     (garbage collection)
+        11   (4.2%)          10   (3.8%)     Parslet::Atoms::Base#succ
+        87  (33.0%)           9   (3.4%)     Parslet::Atoms::Base#apply
+        14   (5.3%)           7   (2.7%)     Parslet::Atoms::CanFlatten#flatten
+        87  (33.0%)           7   (2.7%)     Parslet::Atoms::Sequence#try
+        87  (33.0%)           6   (2.3%)     Parslet::Atoms::Context#try_with_cache
+        84  (31.8%)           6   (2.3%)     Parslet::Atoms::Repetition#try
+         5   (1.9%)           5   (1.9%)     StringScanner#scan
+         5   (1.9%)           3   (1.1%)     Parslet::Source#pos
+        11   (4.2%)           3   (1.1%)     Parslet::Atoms::Re#try
+         3   (1.1%)           3   (1.1%)     StringScanner#match?
+        79  (29.9%)           3   (1.1%)     Parslet::Atoms::Repetition#try_repetition_general
+         2   (0.8%)           2   (0.8%)     StringScanner#pos
+        87  (33.0%)           2   (0.8%)     Parslet::Atoms::Entity#try
+         5   (1.9%)           2   (0.8%)     Parslet::Atoms::CanFlatten#foldl
+        13   (4.9%)           2   (0.8%)     Parslet::Atoms::Str#try
+         2   (0.8%)           2   (0.8%)     Integer#==
+        11   (4.2%)           2   (0.8%)     Parslet::Source#consume
+         2   (0.8%)           2   (0.8%)     (marking)
+         2   (0.8%)           2   (0.8%)     Parslet::Slice#initialize
+         1   (0.4%)           1   (0.4%)     Kernel#is_a?
+         1   (0.4%)           1   (0.4%)     StringScanner#rest_size
+         2   (0.8%)           1   (0.4%)     Parslet::Atoms::CanFlatten#merge_fold
+         3   (1.1%)           1   (0.4%)     Class#new
+         1   (0.4%)           1   (0.4%)     Hash#merge
+         1   (0.4%)           1   (0.4%)     Parslet::Source#pos
+         1   (0.4%)           1   (0.4%)     BasicObject#equal?
+         4   (1.5%)           1   (0.4%)     Parslet::Source#matches?
+         1   (0.4%)           1   (0.4%)     Array.new
+Parslet::Atoms::Base#apply (/Users/mulgogi/src/plurimath/parslet/lib/parslet/atoms/base.rb:89)
+  samples:     9 self (3.4%)  /     87 total (33.0%)
+  callers:
+     436  (  501.1%)  Parslet::Atoms::Entity#try
+     340  (  390.8%)  Parslet::Atoms::Sequence#try
+     294  (  337.9%)  Parslet::Atoms::Named#apply
+     166  (  190.8%)  Parslet::Atoms::Alternative#try
+     135  (  155.2%)  Parslet::Atoms::Repetition#try
+     116  (  133.3%)  Parslet::Atoms::Repetition#try_repetition_general
+      87  (  100.0%)  Parslet::Atoms::Base#setup_and_apply
+       1  (    1.1%)  Parslet::Atoms::Lookahead#try
+  callees (78 total):
+    1563  ( 2003.8%)  Parslet::Atoms::Context#try_with_cache
+       3  (    3.8%)  Parslet::Source#pos
+  code:
+                                  |    89  |   def apply(source, context, consume_all=false)
+    4    (1.5%) /     1   (0.4%)  |    90  |     old_pos = source.bytepos
+                                  |    91  | 
+ 1567  (593.6%) /     4   (1.5%)  |    92  |     success, _ = result = context.try_with_cache(self, source, consume_all)
+                                  |    93  | 
+    2    (0.8%) /     2   (0.8%)  |    94  |     if success
+                                  |    95  |       # Notify context
+                                  |    96  |       context.succ(source)
+                                  |    97  |       # If a consume_all parse was made and doesn't result in the consumption
+                                  |    98  |       # of all the input, that is considered an error.
+                                  |    99  |       if consume_all && source.chars_left>0
+                                  |   100  |         # Read 10 characters ahead. Why ten? I don't know.
+                                  |   101  |         offending_pos   = source.bytepos
+                                  |   102  |         offending_input = source.consume(10)
+                                  |   103  | 
+                                  |   104  |         # Rewind input (as happens always in error case)
+                                  |   105  |         source.bytepos  = old_pos
+                                  |   106  | 
+                                  |   107  |         return context.err_at(
+                                  |   108  |           self,
+                                  |   109  |           source,
+                                  |   110  |           "Don't know what to do with #{offending_input.to_s.inspect}",
+                                  |   111  |           offending_pos
+                                  |   112  |         )
+                                  |   113  |       end
+                                  |   114  | 
+                                  |   115  |       # Looks like the parse was successful after all. Don't rewind the input.
+                                  |   116  |       return result
+                                  |   117  |     end
+                                  |   118  | 
+                                  |   119  |     # We only reach this point if the parse has failed. Rewind the input.
+    1    (0.4%) /     1   (0.4%)  |   120  |     source.bytepos = old_pos
+    1    (0.4%) /     1   (0.4%)  |   121  |     return result
+                                  |   122  |   end

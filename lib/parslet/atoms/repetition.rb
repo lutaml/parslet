@@ -58,19 +58,19 @@ class Parslet::Atoms::Repetition < Parslet::Atoms::Base
       case max
       when 1
         success, value = parslet.apply(source, context, consume_all)
-        return success ? succ([tag, value]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [value])
+        return success ? succ([tag, value]) : context.err_at(self, source, error_msgs[:minrep], source.bytepos, [value])
       when 2
         success, v1 = parslet.apply(source, context, false)
-        return context.err_at(self, source, error_msgs[:minrep], source.pos, [v1]) unless success
+        return context.err_at(self, source, error_msgs[:minrep], source.bytepos, [v1]) unless success
         success, v2 = parslet.apply(source, context, consume_all)
-        return success ? succ([tag, v1, v2]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v2])
+        return success ? succ([tag, v1, v2]) : context.err_at(self, source, error_msgs[:minrep], source.bytepos, [v2])
       when 3
         success, v1 = parslet.apply(source, context, false)
-        return context.err_at(self, source, error_msgs[:minrep], source.pos, [v1]) unless success
+        return context.err_at(self, source, error_msgs[:minrep], source.bytepos, [v1]) unless success
         success, v2 = parslet.apply(source, context, false)
-        return context.err_at(self, source, error_msgs[:minrep], source.pos, [v2]) unless success
+        return context.err_at(self, source, error_msgs[:minrep], source.bytepos, [v2]) unless success
         success, v3 = parslet.apply(source, context, consume_all)
-        return success ? succ([tag, v1, v2, v3]) : context.err_at(self, source, error_msgs[:minrep], source.pos, [v3])
+        return success ? succ([tag, v1, v2, v3]) : context.err_at(self, source, error_msgs[:minrep], source.bytepos, [v3])
       end
     end
 
@@ -149,7 +149,7 @@ class Parslet::Atoms::Repetition < Parslet::Atoms::Base
     # Optimize: Pre-allocate array when max is known to avoid repeated expansions
     accum = max ? Array.new(max + 1) : [@tag]
     accum[0] = @tag if max
-    start_pos = source.pos
+    start_pos = source.bytepos
 
     break_on = nil
     loop do

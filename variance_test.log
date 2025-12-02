@@ -1,0 +1,115 @@
+=== Run 1 ===
+FAIR BENCHMARK SUMMARY
+================================================================================
+
+Overall Statistics:
+  Total test cases: 14
+  Average speedup: 1.24x
+  Faster (≥1.0x): 14 cases (100.0%)
+  Slower (<1.0x): 0 cases (0.0%)
+  Statistically significant: 13 cases (92.9%)
+
+  Best case: 1.52x (json/medium.json)
+  Worst case: 1.1x (erb/tiny.erb)
+
+By Parser:
+  sentence    : 1.15x average (1.14x - 1.16x, 3 tests)
+  calc        : 1.18x average (1.16x - 1.21x, 4 tests)
+  json        : 1.46x average (1.4x - 1.52x, 3 tests)
+  erb         : 1.22x average (1.1x - 1.4x, 4 tests)
+
+✓ No statistically significant regressions found!
+
+================================================================================
+=== Run 2 ===
+FAIR BENCHMARK SUMMARY
+================================================================================
+
+Overall Statistics:
+  Total test cases: 14
+  Average speedup: 1.26x
+  Faster (≥1.0x): 14 cases (100.0%)
+  Slower (<1.0x): 0 cases (0.0%)
+  Statistically significant: 14 cases (100.0%)
+
+  Best case: 1.51x (json/medium.json)
+  Worst case: 1.15x (calc/medium.txt)
+
+By Parser:
+  sentence    : 1.18x average (1.17x - 1.21x, 3 tests)
+  calc        : 1.18x average (1.15x - 1.21x, 4 tests)
+  json        : 1.46x average (1.4x - 1.51x, 3 tests)
+  erb         : 1.24x average (1.16x - 1.38x, 4 tests)
+
+✓ No statistically significant regressions found!
+
+================================================================================
+=== Run 3 ===
+FAIR BENCHMARK SUMMARY
+================================================================================
+
+Overall Statistics:
+  Total test cases: 14
+  Average speedup: 1.26x
+  Faster (≥1.0x): 14 cases (100.0%)
+  Slower (<1.0x): 0 cases (0.0%)
+  Statistically significant: 13 cases (92.9%)
+
+  Best case: 1.69x (json/small.json)
+  Worst case: 1.04x (calc/tiny.txt)
+
+By Parser:
+  sentence    : 1.15x average (1.1x - 1.19x, 3 tests)
+  calc        : 1.14x average (1.04x - 1.19x, 4 tests)
+  json        : 1.53x average (1.4x - 1.69x, 3 tests)
+  erb         : 1.27x average (1.11x - 1.42x, 4 tests)
+
+✓ No statistically significant regressions found!
+
+================================================================================
+=== Run 4 ===
+FAIR BENCHMARK SUMMARY
+================================================================================
+
+Overall Statistics:
+  Total test cases: 14
+  Average speedup: 1.27x
+  Faster (≥1.0x): 14 cases (100.0%)
+  Slower (<1.0x): 0 cases (0.0%)
+  Statistically significant: 14 cases (100.0%)
+
+  Best case: 1.5x (json/medium.json)
+  Worst case: 1.15x (calc/tiny.txt)
+
+By Parser:
+  sentence    : 1.21x average (1.19x - 1.22x, 3 tests)
+  calc        : 1.19x average (1.15x - 1.22x, 4 tests)
+  json        : 1.46x average (1.39x - 1.5x, 3 tests)
+  erb         : 1.26x average (1.15x - 1.37x, 4 tests)
+
+✓ No statistically significant regressions found!
+
+================================================================================
+=== Run 5 ===
+FAIR BENCHMARK SUMMARY
+================================================================================
+
+Overall Statistics:
+  Total test cases: 14
+  Average speedup: 1.23x
+  Faster (≥1.0x): 14 cases (100.0%)
+  Slower (<1.0x): 0 cases (0.0%)
+  Statistically significant: 13 cases (92.9%)
+
+  Best case: 1.47x (json/medium.json)
+  Worst case: 1.02x (calc/medium.txt)
+
+By Parser:
+  sentence    : 1.17x average (1.14x - 1.2x, 3 tests)
+  calc        : 1.13x average (1.02x - 1.2x, 4 tests)
+  json        : 1.43x average (1.35x - 1.47x, 3 tests)
+  erb         : 1.23x average (1.14x - 1.35x, 4 tests)
+
+✓ No statistically significant regressions found!
+
+================================================================================

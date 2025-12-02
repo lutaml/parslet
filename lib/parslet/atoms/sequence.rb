@@ -40,16 +40,17 @@ class Parslet::Atoms::Sequence < Parslet::Atoms::Base
       curr = new_parslets[i]
 
       if curr.is_a?(Parslet::Atoms::Str)
-        # Collect consecutive Str atoms
-        concat_str = curr.str
+        # Collect consecutive Str atoms using Rope for O(1) append
+        rope = Parslet::Rope.new.append(curr.str)
         j = i + 1
         while j < new_parslets.size && new_parslets[j].is_a?(Parslet::Atoms::Str)
-          concat_str += new_parslets[j].str
+          rope.append(new_parslets[j].str)
           j += 1
         end
 
         # If we merged multiple Str atoms, create a new combined Str
-        optimized << (j > i + 1 ? Parslet::Atoms::Str.new(concat_str) : curr)
+        # O(n) join happens once at the end instead of O(n²) repeated concatenation
+        optimized << (j > i + 1 ? Parslet::Atoms::Str.new(rope.to_s) : curr)
         i = j
       else
         optimized << curr

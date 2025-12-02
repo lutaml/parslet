@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'jekyll', '~> 4.3'
+gem 'jekyll-asciidoc'
+gem 'jekyll-seo-tag'
+gem 'jekyll-sitemap'
+gem 'just-the-docs', '~> 0.10.1'

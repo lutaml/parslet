@@ -107,7 +107,7 @@ describe Parslet do
     it 'leaves pos untouched if there is no foo' do
       source = src('bar')
       parslet.apply(source, context)
-      source.pos.charpos.should == 0
+      source.pos.should == 0
     end
 
     it "inspects as 'foo'?" do
@@ -207,7 +207,7 @@ describe Parslet do
       it 'does not change input position' do
         source = src('foo')
         parslet.apply(source, context)
-        source.pos.charpos.should == 0
+        source.pos.should == 0
       end
     end
 
@@ -243,7 +243,7 @@ describe Parslet do
       it 'does not change input position' do
         source = src('bar')
         parslet.apply(source, context)
-        source.pos.charpos.should == 0
+        source.pos.should == 0
       end
     end
 
@@ -289,7 +289,7 @@ describe Parslet do
     it 'consumes one char' do
       source = src('foo')
       parslet.apply(source, context)
-      source.pos.charpos.should == 1
+      source.pos.should == 1
     end
   end
 

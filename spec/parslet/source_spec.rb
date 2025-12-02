@@ -28,7 +28,7 @@ describe Parslet::Source do
     end
 
     describe '<- #pos' do
-      subject { source.pos.charpos }
+      subject { source.pos }
 
       it { is_expected.to eq(0) }
 
@@ -39,14 +39,14 @@ describe Parslet::Source do
             pos += (n = rand(1..10))
             source.consume(n)
 
-            source.pos.charpos.should == pos
+            source.pos.should == pos
           end
         end
       end
     end
 
     describe '<- #pos=(n)' do
-      subject { source.pos.charpos }
+      subject { source.pos }
 
       10.times do
         pos = rand(200)
@@ -124,7 +124,7 @@ describe Parslet::Source do
         before do
           @results = {}
           while source.chars_left > 0
-            pos = source.pos.charpos
+            pos = source.pos
             @results[pos] = source.line_and_column
             source.consume(1)
           end
@@ -170,34 +170,31 @@ describe Parslet::Source do
     it 'reads characters, not bytes' do
       source.should match(r('é'))
       source.consume(1)
-      source.pos.charpos.should == 1
+      
+      # Note: pos now returns bytepos directly (not charpos)
+      # For UTF-8: é is 2 bytes, ö is 2 bytes
+      source.pos.should == if RUBY_ENGINE == 'opal'
+                             # In Opal/JavaScript, string indexing is character-based
+                             1
+                           else
+                             # In Ruby, multi-byte characters use multiple bytes
+                             2
+                           end
 
       # TODO This needs to be fixed in code with Opal
       if RUBY_ENGINE == 'opal'
         skip "Opal does not support byte positions and char positions correctly for multi-byte characters"
       end
 
-      source.bytepos.should == if RUBY_ENGINE == 'opal'
-                                 # In Opal/JavaScript, string indexing is character-based, not byte-based
-                                 1
-                               else
-                                 # In Ruby, multi-byte characters have different byte positions
-                                 2
-                               end
+      source.bytepos.should == 2  # Ruby: 2 bytes for 'é'
 
       source.should match(r('ö'))
       source.consume(1)
-      source.pos.charpos.should == if RUBY_ENGINE == 'opal'
-                                 1
-                               else
-                                 2
-                               end
+      
+      # After consuming 'é' (2 bytes) and 'ö' (2 bytes) = 4 bytes total
+      source.pos.should == 4
 
-      source.bytepos.should == if RUBY_ENGINE == 'opal'
-                                 2
-                               else
-                                 4
-                               end
+      source.bytepos.should == 4
 
       source.should match(r('変'))
       source.consume(1)

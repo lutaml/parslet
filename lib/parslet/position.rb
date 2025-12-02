@@ -5,10 +5,13 @@ class Parslet::Position
 
   include Comparable
 
+<<<<<<< HEAD
   # charpos may be precomputed by the caller (StringScanner#charpos is
   # O(1)) — deriving it here is linear in the offset and dominates
   # multibyte-source parse error reporting. The derived value is
   # memoized.
+=======
+>>>>>>> c130927 (docs: clean up documentation for v3.0.0 release)
   def initialize(string, bytepos, charpos = nil)
     @string = string
     @bytepos = bytepos

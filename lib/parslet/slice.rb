@@ -23,22 +23,50 @@
 # delegation, we opt for a partial emulation that gets the job done.
 #
 class Parslet::Slice
-  attr_reader :str, :position, :line_cache
+  attr_reader :str, :line_cache
 
-  # Construct a slice using a string, an offset and an optional line cache.
+  # Construct a slice using an integer byte position, a string, and an optional line cache.
   # The line cache should be able to answer to the #line_and_column message.
   #
-  def initialize(position, string, line_cache = nil)
-    @position = position
+  # @param bytepos [Integer] Byte position in the original input
+  # @param string [String] The slice content
+  # @param line_cache [Object] Optional line cache for line/column info
+  #
+  def initialize(bytepos, string, line_cache = nil)
+    @bytepos = bytepos
     @str = string
     @line_cache = line_cache
-    @offset = nil  # Lazy cache for offset
   end
 
-  def offset
-    # Cache offset since it's frequently accessed
-    @offset ||= @position.charpos
+  # Create a Slice from a Rope.
+  # The rope is converted to a string and used to create the slice.
+  #
+  # @param rope [Parslet::Rope] The rope to convert
+  # @param bytepos [Integer] Byte position in the input
+  # @param line_cache [Object] Optional line cache for line/column info
+  # @return [Parslet::Slice] A new slice with the rope's content
+  #
+  def self.from_rope(rope, bytepos, line_cache = nil)
+    new(bytepos, rope.to_s, line_cache)
   end
+
+  # Returns the byte position of this slice in the original input.
+  # This is the primary position tracking mechanism.
+  #
+  def offset
+    @bytepos
+  end
+
+  # Alias for offset - returns byte position.
+  # For backward compatibility and clarity.
+  #
+  alias bytepos offset
+
+  # Alias for offset - returns byte position.
+  # Note: For ASCII text, bytepos == charpos.
+  # For UTF-8, this is an approximation (byte position, not character position).
+  #
+  alias charpos offset
 
   # Compares slices to other slices or strings.
   # Fast path: Compare strings directly, most common case
@@ -85,16 +113,17 @@ class Parslet::Slice
   # as the one of this slice.
   #
   def +(other)
-    self.class.new(@position, str + other.to_s, line_cache)
+    self.class.new(@bytepos, str + other.to_s, line_cache)
   end
 
   # Returns a <line, column> tuple referring to the original input.
+  # LineCache expects an integer byte position.
   #
   def line_and_column
     raise ArgumentError, 'No line cache was given, cannot infer line and column.' \
       unless line_cache
 
-    line_cache.line_and_column(@position.bytepos)
+    line_cache.line_and_column(@bytepos)
   end
 
   # Conversion operators -----------------------------------------------------
