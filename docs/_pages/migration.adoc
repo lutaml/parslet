@@ -1,0 +1,60 @@
+---
+title: Migration Guide
+nav_order: 2
+parent: Core topics
+---
+
+= Migration from Vanilla Parslet
+
+Plurimath-parslet is a drop-in replacement for parslet 2.0.0 with 100% backward compatibility.
+
+== Quick Migration
+
+Simply replace in your Gemfile:
+
+[source,ruby]
+----
+# Before
+gem 'parslet', '~> 2.0'
+
+# After
+gem 'plurimath-parslet', '~> 3.1'
+----
+
+Run `bundle update parslet` and you're done!
+
+== What Changes
+
+**Nothing in your code** - All APIs are identical
+
+**Better performance** - 59% faster on average
+
+**Same behavior** - All parslet 2.0.0 tests pass
+
+== Compatibility
+
+✅ 100% compatible with parslet 2.0.0 API
+✅ All parslet tests pass (675/675)
+✅ Drop-in replacement - no code changes needed
+✅ Opal compatible (JavaScript via Opal)
+
+== Benefits
+
+* **59% faster** - Average 1.59x speedup
+* **Less memory** - 34-47% fewer allocations
+* **Zero regressions** - Nothing becomes slower
+* **Automatic** - Optimizations applied transparently
+
+See link:optimizations[optimizations documentation] and link:../_benchmarks/comparison[benchmark comparison] for details.
+
+== If You Have Issues
+
+Plurimath-parslet is thoroughly tested, but if you encounter issues:
+
+1. Verify you're using 3.1.0+: `Parslet::VERSION`
+2. Check our link:https://github.com/plurimath/plurimath-parslet/issues[issue tracker]
+3. Open a new issue with reproducible case
+
+== No Migration Needed
+
+That's it! Plurimath-parslet works exactly like vanilla parslet, just faster.

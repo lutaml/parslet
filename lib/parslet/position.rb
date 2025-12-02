@@ -6,7 +6,7 @@ class Parslet::Position
 
   include Comparable
 
-  def initialize(string, bytepos, charpos)
+  def initialize(string, bytepos, charpos = nil)
     @string = string
     @bytepos = bytepos
     @charpos = charpos

@@ -18,21 +18,9 @@ module Parslet
 
       @str = StringScanner.new(str)
 
-      # Pre-populate regex cache for common small patterns (1-10 chars)
-      # This avoids repeated regex compilation for the most common cases
-      @re_cache = {}
-      (1..10).each { |n| @re_cache[n] = /(.|$){#{n}}/m }
-      @re_cache.default_proc = proc { |h,k| h[k] = /(.|$){#{k}}/m }
-
-      # Cache Position objects to avoid repeated allocation
-      # Positions are frequently recreated at the same byte positions
-      @pos_cache = {}
-      
-      # Cache charpos to avoid expensive recomputation for Unicode text
-      # charpos calculation is O(n) for each call on Unicode strings
-      @charpos_cache = {}
-      @last_bytepos = 0
-      @last_charpos = 0
+      # maps 1 => /./m, 2 => /../m, etc...
+      @re_cache = Hash.new { |h,k|
+        h[k] = /(.|$){#{k}}/m }
 
       @line_cache = LineCache.new
       @line_cache.scan_for_line_endings(0, str)
@@ -52,19 +40,10 @@ module Parslet
     # input.
     #
     def consume(n)
-      # Fast path for single character (very common case)
-      # Avoids regex lookup and match overhead
-      if n == 1
-        position = self.pos
-        char = @str.getch
-        return Parslet::Slice.new(position, char || '', @line_cache)
-      end
-
-      # Multi-character consumption uses regex
-      position = self.pos
+      bytepos = self.bytepos
       slice_str = @str.scan(@re_cache[n])
       slice = Parslet::Slice.new(
-        position,
+        bytepos,
         slice_str,
         @line_cache)
 
@@ -103,33 +82,22 @@ module Parslet
       @str.pos + idx
     end
 
-    # Position of the parse as a character offset into the original string.
+    # Position of the parse as a byte offset into the original string.
+    # Returns an integer byte position instead of a Position object.
     #
+    # @return [Integer] Current byte position in the input
     # @note Please be aware of encodings at this point.
     #
     def pos
-      # Cache Position objects by byte position to avoid repeated allocation
-      # Most parses revisit the same positions multiple times
-      current_bytepos = @str.pos
-
-      @pos_cache.fetch(current_bytepos) do
-        # Use incremental charpos calculation to avoid O(n) StringScanner#charpos calls
-        current_charpos = get_cached_charpos(current_bytepos)
-        
-        pos_obj = if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'opal'
-          # In Opal, @str.pos is character position and @str.charpos is byte position
-          # So we need to swap them for Position.new(string, bytepos, charpos)
-          Position.new(@str.string, @str.charpos, @str.pos)
-        else
-          # In Ruby, @str.pos is byte position, use our cached charpos
-          Position.new(@str.string, current_bytepos, current_charpos)
-        end
-        @pos_cache[current_bytepos] = pos_obj
-      end
-    end
-    def bytepos
       @str.pos
     end
+
+    # Alias for pos - returns the current byte position.
+    # Provided for clarity and backward compatibility.
+    #
+    # @return [Integer] Current byte position in the input
+    #
+    alias bytepos pos
 
     # @note Please be aware of encodings at this point.
     #
@@ -146,40 +114,5 @@ module Parslet
       @line_cache.line_and_column(position || self.bytepos)
     end
     
-    private
-    
-    # Get cached charpos using incremental calculation
-    # This avoids O(n) charpos recalculation for each position
-    def get_cached_charpos(bytepos)
-      # Check if we have this exact position cached
-      return @charpos_cache[bytepos] if @charpos_cache.key?(bytepos)
-      
-      # If bytepos is before our last known position, recalculate from scratch
-      if bytepos < @last_bytepos
-        # Full recalculation needed (rare case - backtracking)
-        result = @str.charpos
-        @last_bytepos = bytepos
-        @last_charpos = result
-        @charpos_cache[bytepos] = result
-        return result
-      end
-      
-      # Forward movement: calculate incrementally from last known position
-      # This is much faster than calling @str.charpos repeatedly
-      if bytepos == @last_bytepos
-        return @last_charpos
-      end
-      
-      # Calculate character count in the range [@last_bytepos, bytepos)
-      slice = @str.string.byteslice(@last_bytepos, bytepos - @last_bytepos)
-      char_count = slice ? slice.length : 0
-      
-      new_charpos = @last_charpos + char_count
-      @last_bytepos = bytepos
-      @last_charpos = new_charpos
-      @charpos_cache[bytepos] = new_charpos
-      
-      new_charpos
-    end
   end
 end

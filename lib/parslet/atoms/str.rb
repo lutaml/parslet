@@ -42,12 +42,12 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
     if @char
       return context.err(self, source, error_msgs[:premature]) if source.chars_left < 1
 
-      error_pos = source.pos  # Save position before consuming
+      error_pos = source.pos  # Save position before consuming (now integer)
       slice = source.consume(1)
       return succ(slice) if slice.str == @char
 
       # Failed to match - restore position and report error
-      source.bytepos = error_pos.bytepos
+      source.bytepos = error_pos
       return context.err_at(self, source, [error_msgs[:failed], slice], error_pos)
     end
 
@@ -62,7 +62,7 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
     return succ(slice) if slice.str == @str
 
     # Failed to match - restore position and report error
-    source.bytepos = error_pos.bytepos
+    source.bytepos = error_pos
     return context.err_at(self, source, [error_msgs[:failed], slice], error_pos)
   end
 
@@ -74,6 +74,12 @@ class Parslet::Atoms::Str < Parslet::Atoms::Base
   # Caching adds overhead without benefit for such simple operations.
   def cached?
     false
+  end
+
+  # Session 13: Str always produces flat results (Parslet::Slice)
+  # No nested structures, so flatten can skip processing
+  def flat?
+    true
   end
 
   # FIRST set for Str is just the string itself

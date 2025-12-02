@@ -1,32 +1,32 @@
 require 'spec_helper'
 
 describe Parslet::Slice do
-  def cslice(string, offset, charoff, cache = nil)
+  def cslice(string, bytepos, cache = nil)
     described_class.new(
-      Parslet::Position.new(string, offset, charoff),
+      bytepos,
       string,
       cache
     )
   end
 
   describe 'construction' do
-    it 'constructs from an offset and a string' do
-      cslice("foobar", 40, 6)
+    it 'constructs from a byte position and a string' do
+      cslice("foobar", 40)
     end
   end
 
   context "('foobar', 40, 'foobar')" do
-    let(:slice) { cslice('foobar', 40, 6) }
+    let(:slice) { cslice('foobar', 40) }
 
     describe 'comparison' do
       it 'is equal to other slices with the same attributes' do
-        other = cslice('foobar', 40, 40)
+        other = cslice('foobar', 40)
         slice.should == other
         other.should == slice
       end
 
       it "is equal to other slices (offset is irrelevant for comparison)" do
-        other = cslice("foobar", 41, 41)
+        other = cslice("foobar", 41)
         slice.should == other
         other.should == slice
       end
@@ -58,7 +58,7 @@ describe Parslet::Slice do
 
     describe 'offset' do
       it 'returns the associated offset' do
-        slice.offset.should == 6
+        slice.offset.should == 40
       end
 
       it 'fails to return a line and column' do
@@ -69,11 +69,23 @@ describe Parslet::Slice do
 
       context 'when constructed with a source' do
         let(:cache) { double(:cache, line_and_column: [13, 14]) }
-        let(:slice) { cslice('foobar', 40, 40, cache) }
+        let(:slice) { cslice('foobar', 40, cache) }
 
         it 'returns proper line and column' do
           slice.line_and_column.should == [13, 14]
         end
+      end
+    end
+
+    describe '#bytepos' do
+      it 'returns byte position' do
+        slice.bytepos.should == 40
+      end
+    end
+
+    describe '#charpos' do
+      it 'returns same as offset (bytepos)' do
+        slice.charpos.should == 40
       end
     end
 
@@ -103,12 +115,12 @@ describe Parslet::Slice do
       describe '<- #+' do
         subject { slice + other }
 
-        let(:other) { cslice("baz", 10, 10) }
+        let(:other) { cslice("baz", 10) }
 
         it 'concats like string does' do
           subject.size.should == 9
           subject.should == 'foobarbaz'
-          subject.offset.should == 6
+          subject.offset.should == 40
         end
       end
     end
@@ -128,13 +140,13 @@ describe Parslet::Slice do
 
       describe 'cast to Float' do
         it 'returns a float' do
-          Float(cslice('1.345', 11, 11)).should == 1.345
+          Float(cslice('1.345', 11)).should == 1.345
         end
       end
 
       describe 'cast to Integer' do
         it 'casts to integer as a string would' do
-          s = cslice('1234', 40, 40)
+          s = cslice('1234', 40)
           Integer(s).should == 1234
           s.to_i.should == 1234
         end
@@ -158,7 +170,7 @@ describe Parslet::Slice do
           # For Opal we have redefined inspect to return the string itself
           skip if RUBY_ENGINE == 'opal'
 
-          is_expected.to eq('"foobar"@6')
+          is_expected.to eq('"foobar"@40')
         }
       end
 
@@ -175,12 +187,63 @@ describe Parslet::Slice do
       end
 
       context 'when storing a line cache' do
-        let(:slice) { cslice('foobar', 40, 40, Parslet::Source::LineCache.new) }
+        let(:slice) { cslice('foobar', 40, Parslet::Source::LineCache.new) }
 
         it 'serializes' do
           Marshal.dump(slice)
         end
       end
+    end
+  end
+
+  describe '.from_rope' do
+    let(:bytepos) { 0 }
+
+    it 'creates slice from rope' do
+      rope = Parslet::Rope.new.append('hello').append(' world')
+      slice = described_class.from_rope(rope, bytepos)
+      expect(slice.str).to eq('hello world')
+      expect(slice.offset).to eq(0)
+    end
+
+    it 'handles empty rope' do
+      rope = Parslet::Rope.new
+      slice = described_class.from_rope(rope, bytepos)
+      expect(slice.str).to eq('')
+      expect(slice.offset).to eq(0)
+    end
+
+    it 'handles rope with single segment' do
+      rope = Parslet::Rope.new.append('single')
+      slice = described_class.from_rope(rope, bytepos)
+      expect(slice.str).to eq('single')
+    end
+
+    it 'preserves position information' do
+      rope = Parslet::Rope.new.append('test')
+      slice = described_class.from_rope(rope, 5)
+      expect(slice.offset).to eq(5)
+    end
+
+    it 'preserves line cache' do
+      cache = double(:cache, line_and_column: [10, 15])
+      rope = Parslet::Rope.new.append('test')
+      slice = described_class.from_rope(rope, 0, cache)
+      expect(slice.line_and_column).to eq([10, 15])
+    end
+
+    it 'handles rope with Slice segments' do
+      rope = Parslet::Rope.new
+      rope.append(cslice('hello', 0))
+      rope.append(cslice(' world', 5))
+      slice = described_class.from_rope(rope, bytepos)
+      expect(slice.str).to eq('hello world')
+    end
+
+    it 'creates a proper Slice instance' do
+      rope = Parslet::Rope.new.append('test')
+      slice = described_class.from_rope(rope, bytepos)
+      expect(slice).to be_a(Parslet::Slice)
     end
   end
 end

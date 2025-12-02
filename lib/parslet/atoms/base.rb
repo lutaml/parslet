@@ -14,6 +14,9 @@ class Parslet::Atoms::Base
   # Parslet label as provided in grammar
   attr_accessor :label
 
+  # Phase 61: Frozen error message for unknown input
+  ERROR_UNKNOWN_INPUT = "Don't know what to do with ".freeze
+
   # Given a string or an IO object, this will attempt a parse of its contents
   # and return a result. If the parse fails, a Parslet::ParseFailed exception
   # will be thrown.
@@ -72,7 +75,10 @@ class Parslet::Atoms::Base
   # @return [<Boolean, Object>] Result of the parse. If the first member is
   #   true, the parse has succeeded.
   def setup_and_apply(source, error_reporter, consume_all)
-    context = Parslet::Atoms::Context.new(error_reporter)
+    # Session 13: Pass parser class for per-parser cache threshold selection
+    # If self is a Parser instance, pass its class for threshold lookup
+    parser_class = self.is_a?(Parslet::Parser) ? self.class : nil
+    context = Parslet::Atoms::Context.new(error_reporter, parser_class: parser_class)
     apply(source, context, consume_all)
   end
 
@@ -95,7 +101,7 @@ class Parslet::Atoms::Base
       # of all the input, that is considered an error.
       if consume_all && source.chars_left>0
         # Read 10 characters ahead. Why ten? I don't know.
-        offending_pos   = source.pos
+        offending_pos   = source.bytepos
         offending_input = source.consume(10)
 
         # Rewind input (as happens always in error case)
@@ -104,7 +110,7 @@ class Parslet::Atoms::Base
         return context.err_at(
           self,
           source,
-          "Don't know what to do with #{offending_input.to_s.inspect}",
+          ERROR_UNKNOWN_INPUT + offending_input.to_s.inspect,
           offending_pos
         )
       end
@@ -131,6 +137,19 @@ class Parslet::Atoms::Base
   #
   def cached?
     true
+  end
+
+  # Returns true if this atom produces flat results by construction
+  # (no nested arrays/hashes that need flattening). This allows flatten
+  # to skip processing for atoms that are known to produce simple values.
+  #
+  # Session 13: Flatten optimization to reduce 5.27% overhead
+  # Atoms like Str and Re always produce strings (Parslet::Slice),
+  # which don't need flattening.
+  #
+  # @return [Boolean] true if results are flat by construction
+  def flat?
+    false  # Default: assume needs flattening
   end
 
   # Debug printing - in Treetop syntax.

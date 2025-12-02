@@ -1,0 +1,278 @@
+= Performance Monitoring
+:toc:
+
+== Baseline performance
+
+Established: 2025-12-01
+Ruby Version: 3.3.2
+Platform: arm64-darwin23
+
+== Target metrics
+
+Monitor for regressions using these validated baselines:
+
+.Baseline thresholds
+|===
+| Metric | Baseline | Acceptable Range | Regression Threshold
+
+| Overall Average | 1.25x | 1.22x - 1.28x | <1.20x
+| JSON Average | 1.47x | 1.42x - 1.52x | <1.40x
+| ERB Average | 1.27x | 1.23x - 1.31x | <1.20x
+| Calc Average | 1.20x | 1.17x - 1.23x | <1.15x
+| Sentence Average | 1.16x | 1.13x - 1.19x | <1.10x
+|===
+
+=== Individual case thresholds
+
+.Per-case baselines
+|===
+| Test Case | Baseline | Acceptable Range | Alert If
+
+| json/medium.json | 1.48x | 1.42-1.54x | <1.40x
+| json/small.json | 1.45x | 1.39-1.51x | <1.38x
+| json/tiny.json | 1.35x | 1.30-1.40x | <1.28x
+| erb/small.erb | 1.36x | 1.31-1.41x | <1.28x
+| erb/large.erb | 1.22x | 1.17-1.27x | <1.15x
+| erb/medium.erb | 1.17x | 1.12-1.22x | <1.10x
+| erb/tiny.erb | 1.15x | 1.10-1.20x | <1.08x
+| calc/large.txt | 1.21x | 1.16-1.26x | <1.13x
+| calc/tiny.txt | 1.15x | 1.10-1.20x | <1.08x
+| calc/small.txt | 1.15x | 1.10-1.20x | <1.08x
+| calc/medium.txt | 1.14x | 1.09-1.19x | <1.07x
+| sentence/small.txt | 1.18x | 1.13-1.23x | <1.10x
+| sentence/tiny.txt | 1.17x | 1.12-1.22x | <1.10x
+| sentence/medium.txt | 1.15x | 1.10-1.20x | <1.08x
+|===
+
+== Monitoring process
+
+=== Before major changes
+
+Run benchmarks to establish pre-change baseline:
+
+[source,bash]
+----
+ruby benchmark/fair_comparison.rb > results/pre_change.txt
+----
+
+=== After changes
+
+Run benchmarks again to measure impact:
+
+[source,bash]
+----
+ruby benchmark/fair_comparison.rb > results/post_change.txt
+----
+
+=== Comparison criteria
+
+1. *Overall average* should remain ≥1.20x
+2. *No individual case* should regress >10%
+3. *Variance* should remain <10%
+4. *Parser averages* should stay within acceptable ranges
+
+=== Documentation
+
+Document all benchmark runs in session completion documents
+(SESSION_XX_COMPLETE.md).
+
+== Red flags
+
+Alert immediately if:
+
+* ❌ Overall average drops below 1.20x
+* ❌ Any parser average drops below its regression threshold
+* ❌ Variance exceeds 15% for any metric
+* ❌ >3 test cases regress by >5%
+* ❌ Any case drops by >15% from baseline
+
+== Acceptable changes
+
+Normal fluctuations include:
+
+* ✅ ±5% fluctuation within baseline range
+* ✅ Some cases improve while others remain stable
+* ✅ Variance within ±10%
+* ✅ 1-2 cases show minor regression (<5%) while others improve
+
+== Investigation triggers
+
+Investigate if:
+
+* 🔍 Overall average drops 3-5% (minor concern)
+* 🔍 Single parser shows consistent degradation across all cases
+* 🔍 Variance suddenly increases (e.g., from ±3% to ±8%)
+* 🔍 Pattern emerges across similar test types
+
+== Future improvements
+
+Track progress toward architectural goals:
+
+.Architectural milestones
+|===
+| Milestone | Target | Description | Timeline
+
+| Rope Implementation | 1.35x avg | Slice accumulation optimization | v3.2.0
+(2-3 weeks)
+| Stream Processing | 1.40x avg | Lazy result evaluation | v3.3.0 (3-4
+weeks)
+| Base#succ Reduction | 1.30x avg | Position caching architecture | v3.0.0
+(2-3 weeks)
+| Full Architecture v4 | 1.50x avg | Complete rewrite | v4.0.0 (3-6
+months)
+|===
+
+== Benchmark environment
+
+=== Required conditions
+
+For consistent results, ensure:
+
+* Ruby 3.3.2+ (same version for pre/post comparison)
+* No other CPU-intensive processes running
+* System has been idle >60 seconds before benchmarking
+* At least 4GB free memory available
+* Same system state (no updates between runs)
+
+=== Multiple runs recommended
+
+Best practice:
+
+1. Run benchmark 3-5 times
+2. Calculate average and standard deviation
+3. Check for outliers (>2 standard deviations from mean)
+4. Exclude outliers and recalculate
+5. Report final average with confidence interval
+
+=== Cooldown period
+
+Wait at least 60 seconds between consecutive benchmark runs to allow:
+
+* GC to stabilize
+* CPU to cool down
+* Caches to clear
+* System state to normalize
+
+== Variance tracking
+
+=== Historical variance
+
+Based on Session 15 validation:
+
+* Overall: ±3.2% ✅ (excellent)
+* Sentence: ±5.1% ✅ (good)
+* Calc: ±5.2% ✅ (good)
+* JSON: ±6.8% ✅ (acceptable)
+* ERB: ±4.0% ✅ (excellent)
+
+=== Acceptable variance ranges
+
+* ±0-5%: Excellent (minimal noise)
+* ±5-10%: Acceptable (normal variation)
+* ±10-15%: Concerning (investigate causes)
+* ±15%+: Unacceptable (re-run benchmarks)
+
+=== Outlier detection
+
+Use statistical methods to detect outliers:
+
+1. Calculate mean and standard deviation
+2. Flag runs >2σ from mean
+3. Investigate cause of outlier
+4. Exclude outliers from final average
+5. Document outlier occurrence
+
+Example from Session 15:
+
+* Outlier detected: 1.77x (>2σ from 1.25x mean)
+* Cause: Unknown (system state variation)
+* Action: Excluded, re-ran validation
+* Result: Validated 1.25x baseline
+
+== Performance degradation scenarios
+
+=== Scenario 1: Gradual degradation
+
+*Signs*: Each session shows 1-2% regression
+
+*Action*:
+
+1. Review recent changes
+2. Profile to identify new hotspots
+3. Check for memory leaks
+4. Validate GC behavior
+
+=== Scenario 2: Sudden drop
+
+*Signs*: Single change causes >5% regression
+
+*Action*:
+
+1. Revert change immediately
+2. Analyze why regression occurred
+3. Rethink implementation approach
+4. Re-benchmark before re-applying
+
+=== Scenario 3: Increased variance
+
+*Signs*: Variance increases from ±5% to ±15%
+
+*Action*:
+
+1. Check system state during benchmarks
+2. Verify no background processes
+3. Confirm consistent test environment
+4. Re-run benchmarks with fresh system state
+
+=== Scenario 4: Parser-specific regression
+
+*Signs*: One parser regresses while others stable
+
+*Action*:
+
+1. Profile that specific parser
+2. Check for parser-specific changes
+3. Compare against baseline implementation
+4. Investigate grammar complexity impact
+
+== Release criteria
+
+Before releasing new versions:
+
+=== Performance requirements
+
+* ✅ Overall average ≥1.20x
+* ✅ No regressions >10% from previous version
+* ✅ Variance remains <10%
+* ✅ At least 4/14 cases ≥1.30x (current baseline)
+
+=== Documentation requirements
+
+* ✅ Benchmark results in release notes
+* ✅ Comparison to previous version
+* ✅ Known performance characteristics documented
+* ✅ Any breaking changes clearly noted
+
+=== Testing requirements
+
+* ✅ All 674 tests passing
+* ✅ Benchmarks run on clean system state
+* ✅ Multiple validation runs completed
+* ✅ Variance analysis performed
+
+== Contact and escalation
+
+If performance issues arise:
+
+1. Document issue in session notes
+2. Run diagnostic profiling
+3. Compare against baseline
+4. If unresolvable, escalate to architecture review
+
+== Related documentation
+
+* link:PERFORMANCE_BENCHMARKS.adoc[Performance Benchmarks] - Detailed results
+* link:_benchmarks/methodology.adoc[Benchmark Methodology] - How benchmarks
+work
+* link:ARCHITECTURE_V4_PLAN.adoc[Architecture v4.0 Plan] - Future improvements
+* link:old-docs/SESSION_15_COMPLETE.md[Session 15] - Baseline establishment

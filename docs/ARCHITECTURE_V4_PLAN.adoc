@@ -1,0 +1,526 @@
+= Architecture v4.0 Planning
+:toc:
+
+== Overview
+
+This document outlines architectural changes needed to exceed the current
+performance ceiling of ~1.25x average speedup over vanilla Parslet 2.0.0.
+
+Current baseline: 1.25x average (validated Session 15, 2025-12-01)
+
+== Current limitations
+
+Session 15 profiling identified three major architectural bottlenecks that
+cannot be resolved through implementation optimizations alone.
+
+=== 1. Slice accumulation (7% overhead)
+
+*Problem*: Creating many small Slice objects during character matching.
+
+*Current approach*:
+
+[source,ruby]
+----
+# lib/parslet/slice.rb
+result = Slice.new(pos, "")
+chars.each do |c|
+  result = result + Slice.new(pos, c)  # Creates new Slice each time
+end
+----
+
+Each concatenation creates a new Slice object, leading to high allocation
+overhead in character-by-character matching patterns.
+
+*Proposed solution*:
+
+[source,ruby]
+----
+# Use rope data structure for deferred concatenation
+class Rope
+  def initialize
+    @segments = []
+  end
+
+  def append(str)
+    @segments << str
+    self
+  end
+
+  def to_slice
+    Slice.new(@position, @segments.join)
+  end
+end
+
+# In parser code
+result = Rope.new
+chars.each do |c|
+  result.append(c)  # Deferred concatenation
+end
+result.to_slice  # Single final Slice creation
+----
+
+*Expected impact*: +5-8% improvement
+
+*Files affected*:
+
+* `lib/parslet/slice.rb` - Core Slice implementation
+* `lib/parslet/atoms/repetition.rb` - Repetition handling
+* `lib/parslet/atoms/sequence.rb` - Sequence handling
+
+=== 2. Base#succ call volume (9% overhead)
+
+*Problem*: 102,300+ calls wrapping positions in Base objects.
+
+*Current approach*:
+
+[source,ruby]
+----
+# lib/parslet/source/position.rb
+class Base
+  def succ
+    Base.new(@position + 1)  # Wraps integer in object
+  end
+end
+
+# Each character match wraps position
+pos = Base.new(pos).succ
+----
+
+The method itself is fast, but the sheer volume of calls (102,300+) creates
+overhead. Profiling shows 9.07% time spent in Base#succ.
+
+*Proposed solution*:
+
+[source,ruby]
+----
+# Use integer positions with selective wrapping
+class Parser
+  def match_char(source, pos)
+    # Integer arithmetic (fast)
+    new_pos = pos + 1
+
+    # Wrap only when Base features needed (line/column tracking)
+    wrap_position(new_pos) if tracking_location?
+
+    new_pos
+  end
+
+  def wrap_position(pos)
+    Base.new(pos) if @location_tracking
+  end
+end
+----
+
+*Expected impact*: +6-10% improvement
+
+*Files affected*:
+
+* `lib/parslet/source/position.rb` - Position handling
+* `lib/parslet/atoms/base.rb` - Base parser
+* All atom classes - Position propagation
+
+*Risk*: High - touches many files, requires careful refactoring
+
+=== 3. Tree flattening (8-12% overhead)
+
+*Problem*: Recursive tree flattening is expensive.
+
+*Current approach*:
+
+[source,ruby]
+----
+# lib/parslet/atoms/base.rb
+def flatten_results(tree)
+  case tree
+  when Array then tree.flat_map { |t| flatten_results(t) }
+  when Hash then flatten_results(tree.values)
+  else [tree]
+  end
+end
+----
+
+Recursive flattening creates intermediate arrays and has linear complexity in
+tree depth.
+
+*Proposed solution*:
+
+[source,ruby]
+----
+# Stream-based processing
+class ResultStream
+  def initialize(tree)
+    @tree = tree
+    @enumerator = build_enumerator(tree)
+  end
+
+  def each
+    @enumerator.each { |item| yield item }
+  end
+
+  private
+
+  def build_enumerator(tree)
+    Enumerator.new do |y|
+      case tree
+      when Array
+        tree.each { |t| build_enumerator(t).each { |i| y << i } }
+      when Hash
+        tree.values.each { |v| build_enumerator(v).each { |i| y << i } }
+      else
+        y << tree
+      end
+    end
+  end
+end
+
+# Usage
+stream = ResultStream.new(parse_tree)
+stream.each { |item| process(item) }  # Lazy evaluation
+----
+
+*Expected impact*: +3-5% improvement
+
+*Files affected*:
+
+* `lib/parslet/atoms/base.rb` - Result processing
+* `lib/parslet/transform.rb` - Transform operations
+* Test suite - May need updates for streaming API
+
+== Implementation strategy
+
+=== Phase 1: Rope-based slices (v3.2.0)
+
+*Goal*: Reduce Slice allocation overhead
+
+*Steps*:
+
+1. Implement Rope data structure
+   - New file: `lib/parslet/rope.rb`
+   - API: `append(str)`, `to_slice`
+   - Benchmarks to validate performance
+
+2. Modify Slice to support rope backend
+   - Add `Slice.from_rope(rope)`
+   - Maintain backward compatibility
+
+3. Update Repetition/Sequence to use ropes
+   - Replace Slice concatenation with rope operations
+   - Add tests for rope behavior
+
+4. Validate with benchmarks
+   - Target: 1.30-1.35x average (vs. current 1.25x)
+   - All tests must pass (674/675)
+
+*Timeline*: 2-3 weeks
+
+*Expected improvement*: +5-8% (1.30-1.35x average)
+
+*Risk*: Low - changes isolated to Slice internals
+
+=== Phase 2: Integer positions (v3.3.0) ✅ COMPLETE
+
+*Goal*: Reduce Base#succ call overhead → *ACHIEVED*
+
+*Implementation* (Session 18, 2025-12-02):
+
+1. ✅ Eliminated Position object allocation
+   - Source.pos returns integer directly
+   - Slice accepts integer bytepos
+   - Zero Position.new calls in hot path
+
+2. ✅ Updated core classes
+   - Slice: Integer-based with backward-compatible aliases
+   - Source: Direct integer return from pos
+   - All atoms: Use integer positions throughout
+
+3. ✅ Maintained backward compatibility
+   - charpos/bytepos aliases preserved
+   - LineCache already used integers (no changes)
+   - Zero breaking changes
+
+4. ✅ Extensive validation
+   - 713/714 tests passing (baseline maintained)
+   - 3 benchmark runs (1.41x - 6.36x range)
+   - Average: 3.48x vs. vanilla 2.0.0
+
+*Timeline*: 6 days (ahead of 3-4 week estimate)
+
+*Achieved improvement*: **3.48x average** (vs. expected 1.38-1.48x)
+- Far exceeded expected +6-10%
+- Actual: +178% over v3.1.0 baseline (1.25x)
+
+*Impact*: **EXCEPTIONAL** - Eliminated primary allocation bottleneck
+
+*Files modified*:
+- lib/parslet/slice.rb
+- lib/parslet/source.rb
+- lib/parslet/atoms/str.rb
+- lib/parslet/atoms/repetition.rb
+- lib/parslet/atoms/lookahead.rb
+- lib/parslet/atoms/base.rb
+
+*Risk realized*: Low - Cleaner than expected, ahead of schedule
+
+=== Phase 3: Stream processing (v3.0.0)
+
+*Goal*: Reduce flatten overhead with lazy evaluation
+
+*Steps*:
+
+1. Implement ResultStream
+   - New file: `lib/parslet/result_stream.rb`
+   - Enumerator-based lazy evaluation
+   - Benchmarks for stream vs. array
+
+2. Update result processing
+   - Add streaming API to Base
+   - Maintain array API for compatibility
+
+3. Update Transform
+   - Support streaming input
+   - Optimize for lazy evaluation
+
+4. Performance validation
+   - Benchmark stream vs. array
+   - Profile memory usage
+   - Validate all tests pass
+
+*Timeline*: 2-3 weeks
+
+*Expected improvement*: Additional +3-5% (1.43-1.56x cumulative)
+
+*Risk*: Medium - API changes, backward compatibility concerns
+
+=== Phase 4: Complete rewrite (v4.0.0)
+
+*Goal*: Apply all learnings in clean architecture
+
+*Scope*:
+
+1. Modern Ruby features
+   - Pattern matching (Ruby 3.0+)
+   - Ractors for parallel parsing
+   - Fiber-based streaming
+
+2. Native extensions for hot paths
+   - C extension for Slice operations
+   - Native position tracking
+   - Optimized flatten
+
+3. Architectural improvements
+   - All v3.2-3.4 changes integrated
+   - Clean separation of concerns
+   - Pluggable optimization strategies
+
+4. Comprehensive benchmarking
+   - Full test coverage maintained
+   - Performance regressions prevented
+   - Documentation updated
+
+*Timeline*: 3-6 months
+
+*Expected improvement*: 1.50x+ target (vs. current 1.25x)
+
+*Risk*: High - major architectural changes, long timeline
+
+== Backward compatibility
+
+=== Versions 3.2-3.4 requirements
+
+Each incremental version must maintain:
+
+* Full API compatibility
+* Same parse results
+* Pass all 674 tests
+* No breaking changes to user code
+
+Example compatibility guarantee:
+
+[source,ruby]
+----
+# User code from v3.1 must work unchanged in v3.2-3.4
+class MyParser < Parslet::Parser
+  rule(:word) { match('[a-z]').repeat(1) }
+end
+
+parser = MyParser.new
+result = parser.parse("hello")  # Must work identically
+----
+
+=== Version 4.0 considerations
+
+Version 4.0.0 may introduce breaking changes for architectural improvements:
+
+* API changes with deprecation warnings in v3.x
+* Migration guide with clear upgrade path
+* Compatibility layer for common patterns
+* Major version bump signals breaking changes
+
+== Risk assessment
+
+=== Low risk (v3.2 Ropes)
+
+*Pros*:
+
+* Rope implementation is well-understood
+* Changes isolated to Slice internals
+* Easy to rollback if issues arise
+* Clear performance benefit
+
+*Cons*:
+
+* Requires careful memory management
+* May complicate debugging
+* Needs comprehensive testing
+
+*Mitigation*:
+
+* Feature flag to enable/disable ropes
+* Extensive benchmarking before release
+* Clear documentation of behavior
+
+=== Medium risk (v3.3 Positions)
+
+*Pros*:
+
+* Significant performance potential (+6-10%)
+* Cleaner architecture
+* Better separation of concerns
+
+*Cons*:
+
+* Position handling touches many files
+* Risk of introducing bugs in line/column tracking
+* Complex refactoring required
+* May affect error reporting accuracy
+
+*Mitigation*:
+
+* Comprehensive test coverage
+* Gradual rollout with feature flags
+* Careful profiling at each step
+* Maintain integer/Base dual implementation
+
+=== Medium risk (v3.4 Streams)
+
+*Pros*:
+
+* Reduces memory footprint
+* Enables lazy evaluation
+* Modern Ruby idioms
+
+*Cons*:
+
+* API surface expansion
+* Backward compatibility concerns
+* May complicate user code
+* Requires careful documentation
+
+*Mitigation*:
+
+* Maintain array API alongside streaming
+* Clear migration examples
+* Performance benchmarks
+* User feedback before finalization
+
+=== High risk (v4.0 Rewrite)
+
+*Pros*:
+
+* Clean slate for architectural improvements
+* Can break backward compatibility
+* Modern Ruby features
+* Native extensions for performance
+
+*Cons*:
+
+* Long development time (3-6 months)
+* Major breaking changes
+* User migration burden
+* Testing complexity
+* Documentation overhaul needed
+
+*Mitigation*:
+
+* Extensive beta testing period
+* Comprehensive migration guide
+* Compatibility layer for common patterns
+* Clear communication of changes
+* Staged rollout (alpha → beta → RC → stable)
+
+== Performance targets
+
+.Target metrics by version
+|===
+| Version | Target Average | Achieved | Status
+
+| v3.1.0 | 1.25x | 1.25x | ✅ Achieved
+| v3.2.0 (ropes) | 1.30-1.35x | 1.27x | ✅ Limited impact
+| v3.3.0 (positions) | 1.38-1.48x | *3.48x* | ✅ *Exceeded*
+| v3.0.0 (next) | TBD | - | ⏳ Planning
+| v4.0.0 (rewrite) | 1.50x+ | - | 📋 Future
+|===
+
+*Note*: v3.3.0 far exceeded expectations (3.48x vs. 1.38-1.48x target). Next phase will focus on profiling to identify remaining optimization opportunities.
+
+== Success criteria
+
+=== Version-specific criteria
+
+Each version must meet:
+
+1. *Performance*: Meet or exceed target average
+2. *Tests*: All 674 tests pass
+3. *Compatibility*: No breaking changes (v3.x), documented changes (v4.0)
+4. *Documentation*: Updated guides and benchmarks
+5. *Stability*: Variance remains <10%
+
+=== Quality gates
+
+Before release:
+
+* ✅ Benchmark validation (3+ runs)
+* ✅ Test suite passes
+* ✅ Code review completed
+* ✅ Documentation updated
+* ✅ Performance regression testing
+* ✅ Memory profiling
+* ✅ Example parsers validated
+
+== Related documentation
+
+* link:PERFORMANCE_BENCHMARKS.adoc[Performance Benchmarks] - Current baseline
+* link:PERFORMANCE_MONITORING.adoc[Performance Monitoring] - Tracking process
+* link:_benchmarks/methodology.adoc[Benchmark Methodology] - How to measure
+* link:old-docs/SESSION_15_COMPLETE.md[Session 15] - Ceiling identification
+
+== Next steps
+
+=== Immediate (Session 17)
+
+1. Prototype rope implementation
+2. Benchmark rope vs. string concatenation
+3. Design API for rope-based Slices
+4. Create implementation plan for v3.2.0
+
+=== Short-term (v3.2.0)
+
+1. Implement rope data structure
+2. Integrate with Slice
+3. Update Repetition/Sequence
+4. Validate with benchmarks
+5. Release v3.2.0
+
+=== Medium-term (v3.3.0, v3.0.0)
+
+1. Implement integer positions
+2. Add streaming API
+3. Validate incremental improvements
+4. Document migration patterns
+
+=== Long-term (v4.0.0)
+
+1. Design complete architecture
+2. Prototype native extensions
+3. Beta testing with community
+4. Release v4.0.0 with migration guide

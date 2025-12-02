@@ -61,8 +61,8 @@ describe 'Automatic Rule Optimization' do
 
   context 'when optimize_rules! is not called' do
     class UnoptimizedParser < Parslet::Parser
-      # As of v3.1.0, optimizations are enabled by default
-      # This class tests the default behavior
+      # As of v3.1.0, optimizations are DISABLED by default (opt-in)
+      # This avoids overhead on tiny/small inputs
       rule(:redundant) {
         str('a').repeat(1, 1) >>
         str('b').repeat(1, 1)
@@ -71,15 +71,15 @@ describe 'Automatic Rule Optimization' do
       root :redundant
     end
 
-    it 'still works with default optimization enabled' do
+    it 'still works without optimization (default)' do
       parser = UnoptimizedParser.new
-      # Should work and be optimized by default
+      # Should work without optimization
       expect(parser.redundant.parse('ab')).to be_truthy
     end
 
-    it 'defaults optimize_rules? to true (v3.1.0+)' do
-      # As of v3.1.0, optimizations are enabled by default
-      expect(UnoptimizedParser.optimize_rules?).to be true
+    it 'defaults optimize_rules? to false (v3.1.0+ opt-in)' do
+      # As of v3.1.0, optimizations are opt-in to avoid overhead
+      expect(UnoptimizedParser.optimize_rules?).to be false
     end
   end
   
@@ -135,15 +135,16 @@ describe 'Automatic Rule Optimization' do
   end
 
   context 'backward compatibility' do
-    it 'does not affect parsers without optimize_rules!' do
+    it 'parsers without optimize_rules! work without optimization' do
       class LegacyParser < Parslet::Parser
         rule(:test) { str('a').repeat(1, 1) }
         root :test
       end
 
       parser = LegacyParser.new
-      # Should still work exactly as before
+      # Should still work, just not optimized (opt-in model)
       expect(parser.test.parse('a')).to be_truthy
+      expect(LegacyParser.optimize_rules?).to be false
     end
 
     it 'does not break existing test suite' do

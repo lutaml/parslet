@@ -47,6 +47,12 @@ class Parslet::Atoms::Re < Parslet::Atoms::Base
     false
   end
 
+  # Session 13: Re always produces flat results (Parslet::Slice)
+  # No nested structures, so flatten can skip processing
+  def flat?
+    true
+  end
+
   # FIRST set for Re is the regex itself
   # Conservative: could theoretically analyze regex to extract literal prefixes
   def compute_first_set

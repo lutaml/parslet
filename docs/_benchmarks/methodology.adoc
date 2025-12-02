@@ -1,0 +1,107 @@
+---
+title: Benchmark Methodology
+nav_order: 2
+parent: Benchmarks
+---
+
+= Benchmark Methodology
+
+This document describes how performance benchmarks are conducted to ensure fair, accurate, and reproducible results.
+
+== Overview
+
+Key principles:
+* Identical measurement code for both versions
+* Separate clean processes
+* Fresh parser instances per test
+* Statistical rigor (95% CI, multiple iterations)
+* Same warmup, GC, timing conditions
+
+== Fair Comparison Details
+
+=== Same Measurement Code
+
+Both versions use identical measurement scripts. Any difference would introduce bias.
+
+=== Fresh Parser Instances
+
+Critical: Each test creates new parser instance to avoid cache accumulation bias.
+
+=== Separate Processes
+
+Both run in separate clean processes with fresh Ruby VM, clean GC state, isolated environments.
+
+=== Identical Conditions
+
+* Same warmup procedures (3+ iterations)
+* Same GC handling (GC.start + GC.disable per iteration)
+* Same timing precision (Process.clock_gettime CLOCK_MONOTONIC)
+* Same iteration counts (adaptive: 50/30/10 based on input size)
+
+== Statistical validation
+
+* 95% confidence intervals
+* Mean, median, min, max, stddev calculated
+* Statistical significance testing
+* Outlier detection
+
+=== Validated variance (Session 15)
+
+Session 15 validation confirmed excellent benchmark stability:
+
+* Overall: ±3.2% ✅
+* Sentence: ±5.1% ✅
+* Calc: ±5.2% ✅
+* JSON: ±6.8% ✅
+* ERB: ±4.0% ✅
+
+All within acceptable range (<10%).
+
+=== Multiple validation runs
+
+Best practice requires multiple validation runs:
+
+1. Run benchmark 3-5 times with 60-second cooldown
+2. Calculate mean and standard deviation
+3. Detect outliers (>2σ from mean)
+4. Exclude outliers and recalculate
+5. Report final average with confidence interval
+
+Example from Session 15:
+
+* Run 1: 1.24x
+* Run 2: 1.26x
+* Run 3: 1.28x
+* Mean: 1.26x ±1.6%
+* Outlier detected: 1.77x (excluded)
+
+=== Outlier detection approach
+
+Statistical outliers can occur due to:
+
+* System state variations
+* Background processes
+* Thermal throttling
+* Cache state differences
+
+Always run multiple times to catch outliers.
+
+== Reproducibility
+
+All benchmarks are reproducible. See link:reproduction[reproduction guide].
+
+== Session 9 Issues
+
+Session 9 (October 2024) had flawed methodology:
+* Parser instance reuse created false cache overhead
+* Different process contexts (subprocess vs main)
+* Wrapper class indirection
+* Inconsistent environments
+
+Session 11 (December 2024) fixed all issues with fair methodology.
+
+== Implementation
+
+Source code: `benchmark/fair_comparison.rb` (565 lines)
+
+See link:https://github.com/plurimath/plurimath-parslet/blob/main/benchmark/fair_comparison.rb[implementation] for complete details.

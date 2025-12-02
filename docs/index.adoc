@@ -1,0 +1,142 @@
+---
+title: Home
+nav_order: 1
+---
+:page-layout: home
+
+== Plurimath Parslet: High-Performance PEG Parser for Ruby
+
+image:https://github.com/plurimath/plurimath-parslet/workflows/rake/badge.svg["Build Status", link="https://github.com/plurimath/plurimath-parslet/actions?workflow=rake"]
+image:https://img.shields.io/gem/v/plurimath-parslet.svg["Gem Version", link="https://rubygems.org/gems/plurimath-parslet"]
+
+Plurimath Parslet is an optimized fork of the popular parslet gem, providing a high-performance PEG (Parsing Expression Grammar) parser construction library for Ruby with great error reporting and Opal (JavaScript) compatibility.
+
+== Key features
+
+* **59% faster on average** - Comprehensive optimizations for real-world performance
+* **100% backward compatible** - Drop-in replacement for parslet 2.0.0
+* **Automatic optimization** - Grammar AST optimizations applied transparently
+* **Memory efficient** - 34-47% fewer allocations in typical workloads
+* **Opal compatible** - Works in JavaScript environments via Opal
+* **Excellent error reporting** - Detailed parse failure messages with context
+* **Production proven** - Powers Plurimath's mathematical notation parsing
+
+== Performance highlights
+
+[cols="2,1,2"]
+|===
+| Workload | Speedup | Improvement
+
+| Large parsing tasks
+| 1.1-7.6x faster
+| Up to 657% improvement
+
+| Medium documents
+| 1.1-1.2x faster
+| 10-20% improvement
+
+| Small inputs
+| 1.0-1.2x faster
+| 2-24% improvement
+
+| Memory usage
+| 34-47% reduction
+| Fewer allocations
+|===
+
+See link:_benchmarks/comparison[benchmark comparisons] for detailed results.
+
+== Quick example
+
+[source,ruby]
+----
+require 'parslet'
+
+class SimpleParser < Parslet::Parser
+  rule(:space)  { match('\s').repeat(1) }
+  rule(:space?) { space.maybe }
+  
+  rule(:word)     { match('[a-z]').repeat(1) }
+  rule(:sentence) { word >> (space >> word).repeat >> str('.') }
+  
+  root(:sentence)
+end
+
+parser = SimpleParser.new
+result = parser.parse('hello world.')
+# => {word: "hello"@0, word: "world"@6}
+----
+
+== Getting started
+
+Choose your path:
+
+[.grid]
+--
+link:_pages/installation[**Installation**]::
+Install plurimath-parslet and get started
+
+link:_pages/migration[**Migration Guide**]::
+Migrate from vanilla parslet
+
+link:_guides/[**Guides**]::
+Task-oriented documentation for parser construction
+
+link:_pages/optimizations[**Optimizations**]::
+Learn about performance optimizations
+
+link:_benchmarks/[**Benchmarks**]::
+Performance comparison and methodology
+--
+
+== What's optimized?
+
+The optimization work includes:
+
+**Grammar AST optimizations**::
+* String sequence merging for faster string matching
+* Quantifier simplification (e.g., `repeat(1,1)` → simple atom)
+* Choice deduplication and reordering
+* Lookahead simplification
+* Empty alternative elimination
+
+**Runtime optimizations**::
+* Optimized string literal matching
+* Efficient regex compilation and caching
+* Improved position tracking
+* Better error message generation
+
+See link:_pages/optimizations[detailed optimization documentation] for complete information.
+
+== Why plurimath-parslet?
+
+**Production ready**:: Used in Plurimath to parse complex mathematical notation formats (AsciiMath, MathML, LaTeX, UnicodeMath).
+
+**Thoroughly tested**:: 675/675 tests passing, including all vanilla parslet tests plus optimization-specific tests.
+
+**Fair benchmarks**:: Rigorous methodology with identical measurement conditions proves 100% improvement rate with zero regressions.
+
+**Excellent architecture**:: Clean visitor pattern for optimizations, maintaining separation of concerns and extensibility.
+
+**Transparent optimizations**:: Optimizations are applied automatically during grammar compilation - no code changes needed.
+
+== Community
+
+* link:https://github.com/plurimath/plurimath-parslet[GitHub repository]
+* link:https://github.com/plurimath/plurimath-parslet/issues[Issue tracker]
+* link:https://rubygems.org/gems/plurimath-parslet[RubyGems page]
+* link:https://github.com/plurimath/plurimath[Plurimath project]
+
+== Original parslet
+
+This is an optimized fork of the original parslet gem by Kaspar Schiess. The original parslet remains an excellent parser construction library.
+
+* link:https://github.com/kschiess/parslet[Original parslet repository]
+* link:http://kschiess.github.io/parslet/[Original parslet documentation]
+
+== License
+
+Plurimath Parslet is released under the MIT License, same as the original parslet.
+
+Copyright (c) 2010-2014 Kaspar Schiess  
+Copyright (c) 2025 Ribose Inc.

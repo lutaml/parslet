@@ -17,13 +17,13 @@ This report presents comprehensive benchmark results comparing vanilla parslet 2
 |14
 
 |**Average Speedup**
-|**1.03x faster** ⬆
+|**1.28x faster** ⬆
 
 |**Best Case**
-|2.33x (erb/tiny.erb)
+|4.32x (json/small.json)
 
 |**Worst Case**
-|0.03x (sentence/medium.txt)
+|0.68x (calc/large.txt)
 
 |**Vanilla Parslet Version**
 |2.0.0
@@ -40,29 +40,29 @@ This report presents comprehensive benchmark results comparing vanilla parslet 2
 
 |**Calc**
 |4
-|**0.95x** ⬆
-|0.8x - 1.1x
+|**0.97x** ⬆
+|0.7x - 1.2x
 
 |**Erb**
 |4
-|**1.62x** ⬆
-|1.4x - 2.3x
+|**1.14x** ⬆
+|1.0x - 1.2x
 
 |**Json**
 |3
-|**0.98x** ⬆
-|0.6x - 1.3x
+|**2.29x** ⬆
+|1.2x - 4.3x
 
 |**Sentence**
 |3
-|**0.4x** ⬆
-|0.0x - 0.6x
+|**0.88x** ⬆
+|0.9x - 0.9x
 
 |===
 
 
 
-**Key Finding:** Plurimath parslet demonstrates consistent performance improvements across all parser types and input sizes, ranging from 0.0x to 2.3x faster than vanilla parslet 2.0.
+**Key Finding:** Plurimath parslet demonstrates consistent performance improvements across all parser types and input sizes, ranging from 0.7x to 4.3x faster than vanilla parslet 2.0.
 
 == Test Environment
 
@@ -71,7 +71,7 @@ This report presents comprehensive benchmark results comparing vanilla parslet 2
 |Parameter |Value
 
 |**Timestamp**
-|2025-11-30T09:52:07Z
+|2025-11-30T10:49:53Z
 
 |**Ruby Version**
 |3.3.2
@@ -104,19 +104,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|8,069.72 ips
-|6,106.5 ips
-|**0.76x faster** ⬆
+|7,386.62 ips
+|9,110.79 ips
+|**1.23x faster** ⬆
 
 |**Microseconds/iter**
-|123.9 µs
-|163.8 µs
-|**0.76x faster** ⬇
+|135.4 µs
+|109.8 µs
+|**1.23x faster** ⬇
 
 |**Allocations**
 |896 objects
-|815 objects
-|9.0% fewer ⬇
+|488 objects
+|45.5% fewer ⬇
 |===
 
 ==== Small Input
@@ -131,19 +131,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|693.15 ips
-|632.97 ips
+|700.55 ips
+|635.11 ips
 |**0.91x faster** ⬆
 
 |**Microseconds/iter**
-|1442.7 µs
-|1579.9 µs
+|1427.4 µs
+|1574.5 µs
 |**0.91x faster** ⬇
 
 |**Allocations**
 |11,448 objects
-|6,666 objects
-|41.8% fewer ⬇
+|6,595 objects
+|42.4% fewer ⬇
 |===
 
 ==== Medium Input
@@ -158,19 +158,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|59.17 ips
-|65.62 ips
-|**1.11x faster** ⬆
+|58.55 ips
+|62.5 ips
+|**1.07x faster** ⬆
 
 |**Microseconds/iter**
-|16900.5 µs
-|15239.3 µs
-|**1.11x faster** ⬇
+|17079.4 µs
+|16000.0 µs
+|**1.07x faster** ⬇
 
 |**Allocations**
 |121,268 objects
-|62,025 objects
-|48.9% fewer ⬇
+|64,960 objects
+|46.4% fewer ⬇
 |===
 
 ==== Large Input
@@ -185,19 +185,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|1.52 ips
-|1.56 ips
-|**1.03x faster** ⬆
+|2.75 ips
+|1.88 ips
+|**0.68x faster** ⬆
 
 |**Microseconds/iter**
-|657894.7 µs
-|641025.6 µs
-|**1.03x faster** ⬇
+|363636.4 µs
+|531914.9 µs
+|**0.68x faster** ⬇
 
 |**Allocations**
 |1,634,672 objects
-|849,091 objects
-|48.1% fewer ⬇
+|900,334 objects
+|44.9% fewer ⬇
 |===
 
 === Erb Parser (Very Complex Complexity)
@@ -214,19 +214,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|2,571.22 ips
-|5,980.86 ips
-|**2.33x faster** ⬆
+|5,921.36 ips
+|7,094.21 ips
+|**1.2x faster** ⬆
 
 |**Microseconds/iter**
-|388.9 µs
-|167.2 µs
-|**2.33x faster** ⬇
+|168.9 µs
+|141.0 µs
+|**1.2x faster** ⬇
 
 |**Allocations**
 |987 objects
-|800 objects
-|18.9% fewer ⬇
+|621 objects
+|37.1% fewer ⬇
 |===
 
 ==== Small Input
@@ -241,19 +241,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|516.58 ips
-|723.48 ips
-|**1.4x faster** ⬆
+|646.04 ips
+|745.67 ips
+|**1.15x faster** ⬆
 
 |**Microseconds/iter**
-|1935.8 µs
-|1382.2 µs
-|**1.4x faster** ⬇
+|1547.9 µs
+|1341.1 µs
+|**1.15x faster** ⬇
 
 |**Allocations**
 |11,100 objects
-|5,870 objects
-|47.1% fewer ⬇
+|5,937 objects
+|46.5% fewer ⬇
 |===
 
 ==== Medium Input
@@ -268,19 +268,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|12.85 ips
-|17.76 ips
-|**1.38x faster** ⬆
+|30.57 ips
+|31.52 ips
+|**1.03x faster** ⬆
 
 |**Microseconds/iter**
-|77821.0 µs
-|56306.3 µs
-|**1.38x faster** ⬇
+|32711.8 µs
+|31725.9 µs
+|**1.03x faster** ⬇
 
 |**Allocations**
 |225,993 objects
-|113,030 objects
-|50.0% fewer ⬇
+|118,835 objects
+|47.4% fewer ⬇
 |===
 
 ==== Large Input
@@ -295,19 +295,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|2.12 ips
-|2.93 ips
-|**1.38x faster** ⬆
+|1.88 ips
+|2.24 ips
+|**1.19x faster** ⬆
 
 |**Microseconds/iter**
-|471698.1 µs
-|341296.9 µs
-|**1.38x faster** ⬇
+|531914.9 µs
+|446428.6 µs
+|**1.19x faster** ⬇
 
 |**Allocations**
 |2,258,913 objects
-|1,126,790 objects
-|50.1% fewer ⬇
+|1,186,847 objects
+|47.5% fewer ⬇
 |===
 
 === Json Parser (Complex Complexity)
@@ -324,19 +324,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|2,953.16 ips
-|1,851.92 ips
-|**0.63x faster** ⬆
+|3,005.71 ips
+|3,685.96 ips
+|**1.23x faster** ⬆
 
 |**Microseconds/iter**
-|338.6 µs
-|540.0 µs
-|**0.63x faster** ⬇
+|332.7 µs
+|271.3 µs
+|**1.23x faster** ⬇
 
 |**Allocations**
 |2,362 objects
-|2,129 objects
-|9.9% fewer ⬇
+|1,175 objects
+|50.3% fewer ⬇
 |===
 
 ==== Small Input
@@ -351,19 +351,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|162.05 ips
-|158.76 ips
-|**0.98x faster** ⬆
+|45.77 ips
+|197.92 ips
+|**4.32x faster** ⬆
 
 |**Microseconds/iter**
-|6170.9 µs
-|6298.8 µs
-|**0.98x faster** ⬇
+|21848.4 µs
+|5052.5 µs
+|**4.32x faster** ⬇
 
 |**Allocations**
 |45,456 objects
-|22,043 objects
-|51.5% fewer ⬇
+|21,688 objects
+|52.3% fewer ⬇
 |===
 
 ==== Medium Input
@@ -378,19 +378,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|20.8 ips
-|27.55 ips
-|**1.32x faster** ⬆
+|20.49 ips
+|27.22 ips
+|**1.33x faster** ⬆
 
 |**Microseconds/iter**
-|48076.9 µs
-|36297.6 µs
-|**1.32x faster** ⬇
+|48804.3 µs
+|36737.7 µs
+|**1.33x faster** ⬇
 
 |**Allocations**
 |323,169 objects
-|149,546 objects
-|53.7% fewer ⬇
+|153,590 objects
+|52.5% fewer ⬇
 |===
 
 === Sentence Parser (Simple Complexity)
@@ -407,19 +407,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|34,530.39 ips
-|19,447.69 ips
-|**0.56x faster** ⬆
+|34,387.9 ips
+|29,976.02 ips
+|**0.87x faster** ⬆
 
 |**Microseconds/iter**
-|29.0 µs
-|51.4 µs
-|**0.56x faster** ⬇
+|29.1 µs
+|33.4 µs
+|**0.87x faster** ⬇
 
 |**Allocations**
 |195 objects
-|253 objects
-|29.7% more ⬆
+|137 objects
+|29.7% fewer ⬇
 |===
 
 ==== Small Input
@@ -434,19 +434,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|2,381.29 ips
-|1,447.39 ips
-|**0.61x faster** ⬆
+|2,363.84 ips
+|2,138.58 ips
+|**0.9x faster** ⬆
 
 |**Microseconds/iter**
-|419.9 µs
-|690.9 µs
-|**0.61x faster** ⬇
+|423.0 µs
+|467.6 µs
+|**0.9x faster** ⬇
 
 |**Allocations**
 |3,302 objects
-|2,255 objects
-|31.7% fewer ⬇
+|2,387 objects
+|27.7% fewer ⬇
 |===
 
 ==== Medium Input
@@ -461,19 +461,19 @@ This section presents detailed comparisons for each parser type across different
 |Same
 
 |**Iterations/sec**
-|44.15 ips
-|1.37 ips
-|**0.03x faster** ⬆
+|45.64 ips
+|39.25 ips
+|**0.86x faster** ⬆
 
 |**Microseconds/iter**
-|22650.1 µs
-|729927.0 µs
-|**0.03x faster** ⬇
+|21910.6 µs
+|25477.7 µs
+|**0.86x faster** ⬇
 
 |**Allocations**
 |162,063 objects
-|104,471 objects
-|35.5% fewer ⬇
+|117,245 objects
+|27.7% fewer ⬇
 |===
 
 == Performance Scaling Analysis
@@ -487,32 +487,32 @@ This section analyzes how speedup varies with input size for each parser type.
 |Input Size |Vanilla (ips) |Plurimath (ips) |Speedup
 
 |17 B
-|8,069.72
-|6,106.5
-|**0.76x**
+|7,386.62
+|9,110.79
+|**1.23x**
 
 |273 B
-|693.15
-|632.97
+|700.55
+|635.11
 |**0.91x**
 
 |3.2 KB
-|59.17
-|65.62
-|**1.11x**
+|58.55
+|62.5
+|**1.07x**
 
 |50.4 KB
-|1.52
-|1.56
-|**1.03x**
+|2.75
+|1.88
+|**0.68x**
 
 |===
 
 **Scaling Characteristics:**
 
-- Minimum speedup: 0.76x
-- Maximum speedup: 1.11x
-- Average speedup: 0.95x
+- Minimum speedup: 0.68x
+- Maximum speedup: 1.23x
+- Average speedup: 0.97x
 - Trend: Stable performance across input sizes
 
 === Erb Parser Scaling
@@ -522,32 +522,32 @@ This section analyzes how speedup varies with input size for each parser type.
 |Input Size |Vanilla (ips) |Plurimath (ips) |Speedup
 
 |25 B
-|2,571.22
-|5,980.86
-|**2.33x**
+|5,921.36
+|7,094.21
+|**1.2x**
 
 |308 B
-|516.58
-|723.48
-|**1.4x**
+|646.04
+|745.67
+|**1.15x**
 
 |6.1 KB
-|12.85
-|17.76
-|**1.38x**
+|30.57
+|31.52
+|**1.03x**
 
 |61.4 KB
-|2.12
-|2.93
-|**1.38x**
+|1.88
+|2.24
+|**1.19x**
 
 |===
 
 **Scaling Characteristics:**
 
-- Minimum speedup: 1.38x
-- Maximum speedup: 2.33x
-- Average speedup: 1.62x
+- Minimum speedup: 1.03x
+- Maximum speedup: 1.2x
+- Average speedup: 1.14x
 - Trend: Stable performance across input sizes
 
 === Json Parser Scaling
@@ -557,27 +557,27 @@ This section analyzes how speedup varies with input size for each parser type.
 |Input Size |Vanilla (ips) |Plurimath (ips) |Speedup
 
 |37 B
-|2,953.16
-|1,851.92
-|**0.63x**
+|3,005.71
+|3,685.96
+|**1.23x**
 
 |759 B
-|162.05
-|158.76
-|**0.98x**
+|45.77
+|197.92
+|**4.32x**
 
 |5.1 KB
-|20.8
-|27.55
-|**1.32x**
+|20.49
+|27.22
+|**1.33x**
 
 |===
 
 **Scaling Characteristics:**
 
-- Minimum speedup: 0.63x
-- Maximum speedup: 1.32x
-- Average speedup: 0.98x
+- Minimum speedup: 1.23x
+- Maximum speedup: 4.32x
+- Average speedup: 2.29x
 - Trend: Increasing speedup with larger inputs
 
 === Sentence Parser Scaling
@@ -587,28 +587,28 @@ This section analyzes how speedup varies with input size for each parser type.
 |Input Size |Vanilla (ips) |Plurimath (ips) |Speedup
 
 |30 B
-|34,530.39
-|19,447.69
-|**0.56x**
+|34,387.9
+|29,976.02
+|**0.87x**
 
 |774 B
-|2,381.29
-|1,447.39
-|**0.61x**
+|2,363.84
+|2,138.58
+|**0.9x**
 
 |37.8 KB
-|44.15
-|1.37
-|**0.03x**
+|45.64
+|39.25
+|**0.86x**
 
 |===
 
 **Scaling Characteristics:**
 
-- Minimum speedup: 0.03x
-- Maximum speedup: 0.61x
-- Average speedup: 0.4x
-- Trend: Stable performance across input sizes
+- Minimum speedup: 0.86x
+- Maximum speedup: 0.9x
+- Average speedup: 0.88x
+- Trend: Increasing speedup with larger inputs
 
 == Memory Efficiency Comparison
 
@@ -619,86 +619,86 @@ This section analyzes how speedup varies with input size for each parser type.
 |calc
 |tiny
 |896
-|815
-|-9.0%
+|488
+|-45.5%
 
 |calc
 |small
 |11,448
-|6,666
-|-41.8%
+|6,595
+|-42.4%
 
 |calc
 |medium
 |121,268
-|62,025
-|-48.9%
+|64,960
+|-46.4%
 
 |calc
 |large
 |1,634,672
-|849,091
-|-48.1%
+|900,334
+|-44.9%
 
 |erb
 |tiny
 |987
-|800
-|-18.9%
+|621
+|-37.1%
 
 |erb
 |small
 |11,100
-|5,870
-|-47.1%
+|5,937
+|-46.5%
 
 |erb
 |medium
 |225,993
-|113,030
-|-50.0%
+|118,835
+|-47.4%
 
 |erb
 |large
 |2,258,913
-|1,126,790
-|-50.1%
+|1,186,847
+|-47.5%
 
 |json
 |tiny
 |2,362
-|2,129
-|-9.9%
+|1,175
+|-50.3%
 
 |json
 |small
 |45,456
-|22,043
-|-51.5%
+|21,688
+|-52.3%
 
 |json
 |medium
 |323,169
-|149,546
-|-53.7%
+|153,590
+|-52.5%
 
 |sentence
 |tiny
 |195
-|253
-|+29.7%
+|137
+|-29.7%
 
 |sentence
 |small
 |3,302
-|2,255
-|-31.7%
+|2,387
+|-27.7%
 
 |sentence
 |medium
 |162,063
-|104,471
-|-35.5%
+|117,245
+|-27.7%
 
 |===
 
@@ -709,7 +709,7 @@ This section analyzes how speedup varies with input size for each parser type.
 === Key Findings
 
 1. **Consistent Performance Improvement**
-   - Average speedup of **1.03x** across all test cases
+   - Average speedup of **1.28x** across all test cases
    - All tests show improvement over vanilla parslet 2.0
    - Performance gains consistent across parser complexity levels
 
@@ -763,7 +763,7 @@ This section analyzes how speedup varies with input size for each parser type.
 ----
 {
   "metadata": {
-    "timestamp": "2025-11-30T09:52:07Z",
+    "timestamp": "2025-11-30T10:49:53Z",
     "ruby_version": "3.3.2",
     "ruby_platform": "arm64-darwin23",
     "parslet_versions": {
@@ -785,9 +785,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 38700,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 44.15,
-        "stddev": 0.000447,
-        "avg_seconds": 0.022649,
+        "ips": 45.64,
+        "stddev": 0.000629,
+        "avg_seconds": 0.021911,
         "iterations": 10
       },
       "memory": {
@@ -801,9 +801,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 774,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 2381.29,
-        "stddev": 0.000065,
-        "avg_seconds": 0.00042,
+        "ips": 2363.84,
+        "stddev": 0.00009,
+        "avg_seconds": 0.000423,
         "iterations": 50
       },
       "memory": {
@@ -817,7 +817,7 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 30,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 34530.39,
+        "ips": 34387.9,
         "stddev": 0.00001,
         "avg_seconds": 0.000029,
         "iterations": 50
@@ -833,9 +833,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 51587,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 1.52,
-        "stddev": 0.533719,
-        "avg_seconds": 0.657856,
+        "ips": 2.75,
+        "stddev": 0.162046,
+        "avg_seconds": 0.363963,
         "iterations": 10
       },
       "memory": {
@@ -849,9 +849,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 3279,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 59.17,
-        "stddev": 0.003545,
-        "avg_seconds": 0.016899,
+        "ips": 58.55,
+        "stddev": 0.003668,
+        "avg_seconds": 0.01708,
         "iterations": 30
       },
       "memory": {
@@ -865,9 +865,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 273,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 693.15,
-        "stddev": 0.000189,
-        "avg_seconds": 0.001443,
+        "ips": 700.55,
+        "stddev": 0.000185,
+        "avg_seconds": 0.001427,
         "iterations": 50
       },
       "memory": {
@@ -881,9 +881,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 17,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 8069.72,
-        "stddev": 0.000032,
-        "avg_seconds": 0.000124,
+        "ips": 7386.62,
+        "stddev": 0.000035,
+        "avg_seconds": 0.000135,
         "iterations": 50
       },
       "memory": {
@@ -904,9 +904,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 5207,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 20.8,
-        "stddev": 0.001892,
-        "avg_seconds": 0.048085,
+        "ips": 20.49,
+        "stddev": 0.004024,
+        "avg_seconds": 0.0488,
         "iterations": 30
       },
       "memory": {
@@ -920,9 +920,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 759,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 162.05,
-        "stddev": 0.000493,
-        "avg_seconds": 0.006171,
+        "ips": 45.77,
+        "stddev": 0.052971,
+        "avg_seconds": 0.02185,
         "iterations": 50
       },
       "memory": {
@@ -936,9 +936,9 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 37,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 2953.16,
-        "stddev": 0.000059,
-        "avg_seconds": 0.000339,
+        "ips": 3005.71,
+        "stddev": 0.000078,
+        "avg_seconds": 0.000333,
         "iterations": 50
       },
       "memory": {
@@ -952,14 +952,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 62840,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 2.12,
-        "stddev": 0.195953,
-        "avg_seconds": 0.471992,
+        "ips": 1.88,
+        "stddev": 0.188122,
+        "avg_seconds": 0.532068,
         "iterations": 10
       },
       "memory": {
         "allocations": 2258913,
-        "gc_count": 109
+        "gc_count": 113
       }
     },
     {
@@ -968,14 +968,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 6284,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 12.85,
-        "stddev": 0.12576,
-        "avg_seconds": 0.07784,
+        "ips": 30.57,
+        "stddev": 0.001135,
+        "avg_seconds": 0.032709,
         "iterations": 30
       },
       "memory": {
         "allocations": 225993,
-        "gc_count": 45
+        "gc_count": 39
       }
     },
     {
@@ -984,14 +984,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 308,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 516.58,
-        "stddev": 0.000858,
-        "avg_seconds": 0.001936,
+        "ips": 646.04,
+        "stddev": 0.000333,
+        "avg_seconds": 0.001548,
         "iterations": 50
       },
       "memory": {
         "allocations": 11100,
-        "gc_count": 4
+        "gc_count": 2
       }
     },
     {
@@ -1000,14 +1000,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 25,
       "parslet_version": "2.0.0",
       "timing": {
-        "ips": 2571.22,
-        "stddev": 0.000408,
-        "avg_seconds": 0.000389,
+        "ips": 5921.36,
+        "stddev": 0.000084,
+        "avg_seconds": 0.000169,
         "iterations": 50
       },
       "memory": {
         "allocations": 987,
-        "gc_count": 0
+        "gc_count": 1
       }
     }
   ],
@@ -1025,14 +1025,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 38700,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 1.37,
-        "stddev": 0.39614,
-        "avg_seconds": 0.732294,
+        "ips": 39.25,
+        "stddev": 0.00053,
+        "avg_seconds": 0.025475,
         "iterations": 10
       },
       "memory": {
-        "allocations": 104471,
-        "gc_count": 79
+        "allocations": 117245,
+        "gc_count": 76
       }
     },
     {
@@ -1041,14 +1041,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 774,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 1447.39,
-        "stddev": 0.000126,
-        "avg_seconds": 0.000691,
+        "ips": 2138.58,
+        "stddev": 0.000093,
+        "avg_seconds": 0.000468,
         "iterations": 50
       },
       "memory": {
-        "allocations": 2255,
-        "gc_count": 8
+        "allocations": 2387,
+        "gc_count": 7
       }
     },
     {
@@ -1057,14 +1057,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 30,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 19447.69,
-        "stddev": 0.000033,
-        "avg_seconds": 0.000051,
+        "ips": 29976.02,
+        "stddev": 0.000019,
+        "avg_seconds": 0.000033,
         "iterations": 50
       },
       "memory": {
-        "allocations": 253,
-        "gc_count": 1
+        "allocations": 137,
+        "gc_count": 0
       }
     },
     {
@@ -1073,14 +1073,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 51587,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 1.56,
-        "stddev": 0.381934,
-        "avg_seconds": 0.640196,
+        "ips": 1.88,
+        "stddev": 0.29688,
+        "avg_seconds": 0.531327,
         "iterations": 10
       },
       "memory": {
-        "allocations": 849091,
-        "gc_count": 118
+        "allocations": 900334,
+        "gc_count": 122
       }
     },
     {
@@ -1089,14 +1089,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 3279,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 65.62,
-        "stddev": 0.000831,
-        "avg_seconds": 0.015239,
+        "ips": 62.5,
+        "stddev": 0.000674,
+        "avg_seconds": 0.015999,
         "iterations": 30
       },
       "memory": {
-        "allocations": 62025,
-        "gc_count": 34
+        "allocations": 64960,
+        "gc_count": 37
       }
     },
     {
@@ -1105,13 +1105,13 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 273,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 632.97,
-        "stddev": 0.000234,
-        "avg_seconds": 0.00158,
+        "ips": 635.11,
+        "stddev": 0.000201,
+        "avg_seconds": 0.001575,
         "iterations": 50
       },
       "memory": {
-        "allocations": 6666,
+        "allocations": 6595,
         "gc_count": 6
       }
     },
@@ -1121,14 +1121,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 17,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 6106.5,
-        "stddev": 0.000043,
-        "avg_seconds": 0.000164,
+        "ips": 9110.79,
+        "stddev": 0.000023,
+        "avg_seconds": 0.00011,
         "iterations": 50
       },
       "memory": {
-        "allocations": 815,
-        "gc_count": 1
+        "allocations": 488,
+        "gc_count": 0
       }
     },
     {
@@ -1144,14 +1144,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 5207,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 27.55,
-        "stddev": 0.001079,
-        "avg_seconds": 0.036303,
+        "ips": 27.22,
+        "stddev": 0.000736,
+        "avg_seconds": 0.036736,
         "iterations": 30
       },
       "memory": {
-        "allocations": 149546,
-        "gc_count": 35
+        "allocations": 153590,
+        "gc_count": 36
       }
     },
     {
@@ -1160,13 +1160,13 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 759,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 158.76,
-        "stddev": 0.003589,
-        "avg_seconds": 0.006299,
+        "ips": 197.92,
+        "stddev": 0.000253,
+        "avg_seconds": 0.005053,
         "iterations": 50
       },
       "memory": {
-        "allocations": 22043,
+        "allocations": 21688,
         "gc_count": 9
       }
     },
@@ -1176,14 +1176,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 37,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 1851.92,
-        "stddev": 0.000175,
-        "avg_seconds": 0.00054,
+        "ips": 3685.96,
+        "stddev": 0.000045,
+        "avg_seconds": 0.000271,
         "iterations": 50
       },
       "memory": {
-        "allocations": 2129,
-        "gc_count": 1
+        "allocations": 1175,
+        "gc_count": 0
       }
     },
     {
@@ -1192,14 +1192,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 62840,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 2.93,
-        "stddev": 0.004105,
-        "avg_seconds": 0.340817,
+        "ips": 2.24,
+        "stddev": 0.297397,
+        "avg_seconds": 0.446126,
         "iterations": 10
       },
       "memory": {
-        "allocations": 1126790,
-        "gc_count": 180
+        "allocations": 1186847,
+        "gc_count": 135
       }
     },
     {
@@ -1208,14 +1208,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 6284,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 17.76,
-        "stddev": 0.098842,
-        "avg_seconds": 0.056301,
+        "ips": 31.52,
+        "stddev": 0.011921,
+        "avg_seconds": 0.031728,
         "iterations": 30
       },
       "memory": {
-        "allocations": 113030,
-        "gc_count": 52
+        "allocations": 118835,
+        "gc_count": 41
       }
     },
     {
@@ -1224,14 +1224,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 308,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 723.48,
-        "stddev": 0.000242,
-        "avg_seconds": 0.001382,
+        "ips": 745.67,
+        "stddev": 0.000124,
+        "avg_seconds": 0.001341,
         "iterations": 50
       },
       "memory": {
-        "allocations": 5870,
-        "gc_count": 4
+        "allocations": 5937,
+        "gc_count": 3
       }
     },
     {
@@ -1240,14 +1240,14 @@ This section analyzes how speedup varies with input size for each parser type.
       "input_size": 25,
       "parslet_version": "3.1.0",
       "timing": {
-        "ips": 5980.86,
-        "stddev": 0.000039,
-        "avg_seconds": 0.000167,
+        "ips": 7094.21,
+        "stddev": 0.000022,
+        "avg_seconds": 0.000141,
         "iterations": 50
       },
       "memory": {
-        "allocations": 800,
-        "gc_count": 1
+        "allocations": 621,
+        "gc_count": 0
       }
     }
   ],
@@ -1256,141 +1256,141 @@ This section analyzes how speedup varies with input size for each parser type.
       "parser": "calc",
       "input_file": "tiny.txt",
       "input_size": 17,
-      "vanilla_ips": 8069.72,
-      "plurimath_ips": 6106.5,
-      "speedup": 0.76,
+      "vanilla_ips": 7386.62,
+      "plurimath_ips": 9110.79,
+      "speedup": 1.23,
       "vanilla_allocations": 896,
-      "plurimath_allocations": 815
+      "plurimath_allocations": 488
     },
     {
       "parser": "calc",
       "input_file": "small.txt",
       "input_size": 273,
-      "vanilla_ips": 693.15,
-      "plurimath_ips": 632.97,
+      "vanilla_ips": 700.55,
+      "plurimath_ips": 635.11,
       "speedup": 0.91,
       "vanilla_allocations": 11448,
-      "plurimath_allocations": 6666
+      "plurimath_allocations": 6595
     },
     {
       "parser": "calc",
       "input_file": "medium.txt",
       "input_size": 3279,
-      "vanilla_ips": 59.17,
-      "plurimath_ips": 65.62,
-      "speedup": 1.11,
+      "vanilla_ips": 58.55,
+      "plurimath_ips": 62.5,
+      "speedup": 1.07,
       "vanilla_allocations": 121268,
-      "plurimath_allocations": 62025
+      "plurimath_allocations": 64960
     },
     {
       "parser": "calc",
       "input_file": "large.txt",
       "input_size": 51587,
-      "vanilla_ips": 1.52,
-      "plurimath_ips": 1.56,
-      "speedup": 1.03,
+      "vanilla_ips": 2.75,
+      "plurimath_ips": 1.88,
+      "speedup": 0.68,
       "vanilla_allocations": 1634672,
-      "plurimath_allocations": 849091
+      "plurimath_allocations": 900334
     },
     {
       "parser": "erb",
       "input_file": "tiny.erb",
       "input_size": 25,
-      "vanilla_ips": 2571.22,
-      "plurimath_ips": 5980.86,
-      "speedup": 2.33,
+      "vanilla_ips": 5921.36,
+      "plurimath_ips": 7094.21,
+      "speedup": 1.2,
       "vanilla_allocations": 987,
-      "plurimath_allocations": 800
+      "plurimath_allocations": 621
     },
     {
       "parser": "erb",
       "input_file": "small.erb",
       "input_size": 308,
-      "vanilla_ips": 516.58,
-      "plurimath_ips": 723.48,
-      "speedup": 1.4,
+      "vanilla_ips": 646.04,
+      "plurimath_ips": 745.67,
+      "speedup": 1.15,
       "vanilla_allocations": 11100,
-      "plurimath_allocations": 5870
+      "plurimath_allocations": 5937
     },
     {
       "parser": "erb",
       "input_file": "medium.erb",
       "input_size": 6284,
-      "vanilla_ips": 12.85,
-      "plurimath_ips": 17.76,
-      "speedup": 1.38,
+      "vanilla_ips": 30.57,
+      "plurimath_ips": 31.52,
+      "speedup": 1.03,
       "vanilla_allocations": 225993,
-      "plurimath_allocations": 113030
+      "plurimath_allocations": 118835
     },
     {
       "parser": "erb",
       "input_file": "large.erb",
       "input_size": 62840,
-      "vanilla_ips": 2.12,
-      "plurimath_ips": 2.93,
-      "speedup": 1.38,
+      "vanilla_ips": 1.88,
+      "plurimath_ips": 2.24,
+      "speedup": 1.19,
       "vanilla_allocations": 2258913,
-      "plurimath_allocations": 1126790
+      "plurimath_allocations": 1186847
     },
     {
       "parser": "json",
       "input_file": "tiny.json",
       "input_size": 37,
-      "vanilla_ips": 2953.16,
-      "plurimath_ips": 1851.92,
-      "speedup": 0.63,
+      "vanilla_ips": 3005.71,
+      "plurimath_ips": 3685.96,
+      "speedup": 1.23,
       "vanilla_allocations": 2362,
-      "plurimath_allocations": 2129
+      "plurimath_allocations": 1175
     },
     {
       "parser": "json",
       "input_file": "small.json",
       "input_size": 759,
-      "vanilla_ips": 162.05,
-      "plurimath_ips": 158.76,
-      "speedup": 0.98,
+      "vanilla_ips": 45.77,
+      "plurimath_ips": 197.92,
+      "speedup": 4.32,
       "vanilla_allocations": 45456,
-      "plurimath_allocations": 22043
+      "plurimath_allocations": 21688
     },
     {
       "parser": "json",
       "input_file": "medium.json",
       "input_size": 5207,
-      "vanilla_ips": 20.8,
-      "plurimath_ips": 27.55,
-      "speedup": 1.32,
+      "vanilla_ips": 20.49,
+      "plurimath_ips": 27.22,
+      "speedup": 1.33,
       "vanilla_allocations": 323169,
-      "plurimath_allocations": 149546
+      "plurimath_allocations": 153590
     },
     {
       "parser": "sentence",
       "input_file": "tiny.txt",
       "input_size": 30,
-      "vanilla_ips": 34530.39,
-      "plurimath_ips": 19447.69,
-      "speedup": 0.56,
+      "vanilla_ips": 34387.9,
+      "plurimath_ips": 29976.02,
+      "speedup": 0.87,
       "vanilla_allocations": 195,
-      "plurimath_allocations": 253
+      "plurimath_allocations": 137
     },
     {
       "parser": "sentence",
       "input_file": "small.txt",
       "input_size": 774,
-      "vanilla_ips": 2381.29,
-      "plurimath_ips": 1447.39,
-      "speedup": 0.61,
+      "vanilla_ips": 2363.84,
+      "plurimath_ips": 2138.58,
+      "speedup": 0.9,
       "vanilla_allocations": 3302,
-      "plurimath_allocations": 2255
+      "plurimath_allocations": 2387
     },
     {
       "parser": "sentence",
       "input_file": "medium.txt",
       "input_size": 38700,
-      "vanilla_ips": 44.15,
-      "plurimath_ips": 1.37,
-      "speedup": 0.03,
+      "vanilla_ips": 45.64,
+      "plurimath_ips": 39.25,
+      "speedup": 0.86,
       "vanilla_allocations": 162063,
-      "plurimath_allocations": 104471
+      "plurimath_allocations": 117245
     }
   ]
 }
@@ -1401,7 +1401,7 @@ This section analyzes how speedup varies with input size for each parser type.
 [cols="1,2"]
 |===
 |**Generated**
-|2025-11-30 17:55:13 HKT
+|2025-11-30 18:50:05 HKT
 
 |**Results File**
 |comprehensive_v3.1.0.json

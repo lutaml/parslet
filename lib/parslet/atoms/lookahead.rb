@@ -40,10 +40,10 @@ class Parslet::Atoms::Lookahead < Parslet::Atoms::Base
 
     # Positive lookahead: success when parslet matches
     return succ(nil) if positive && success
-    return context.err_at(self, source, @error_msgs[:positive], source.pos) if positive
+    return context.err_at(self, source, @error_msgs[:positive], source.bytepos) if positive
 
     # Negative lookahead: success when parslet fails
-    return context.err_at(self, source, @error_msgs[:negative], source.pos) if success
+    return context.err_at(self, source, @error_msgs[:negative], source.bytepos) if success
     return succ(nil)
   end
 

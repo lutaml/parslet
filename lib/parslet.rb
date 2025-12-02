@@ -90,17 +90,18 @@ module Parslet
     # This includes quantifier simplification, sequence optimization,
     # choice optimization, and lookahead optimization.
     #
-    # NOTE: As of v3.1.0, optimizations are ENABLED BY DEFAULT for best
-    # performance. Use disable_optimization! to opt-out if needed.
+    # NOTE: As of v3.1.0, optimizations are DISABLED BY DEFAULT to avoid
+    # overhead on tiny/small inputs. Use optimize_rules! to opt-in for
+    # complex parsers (JSON, ERB, large grammars) where benefits outweigh costs.
     #
-    #   class MyParser < Parslet::Parser
-    #     # Optimizations enabled by default
-    #     rule(:optimized) { str('a').repeat(1, 1) }  # automatically becomes str('a')
+    #   class SimpleParser < Parslet::Parser
+    #     # Optimizations disabled by default - good for tiny inputs
+    #     rule(:fast) { str('a').repeat(1, 1) }  # remains as repeat
     #   end
     #
-    #   class LegacyParser < Parslet::Parser
-    #     disable_optimization!  # Opt-out for compatibility
-    #     rule(:unoptimized) { str('a').repeat(1, 1) }  # remains as is
+    #   class ComplexParser < Parslet::Parser
+    #     optimize_rules!  # Opt-in for complex grammars
+    #     rule(:optimized) { str('a').repeat(1, 1) }  # becomes str('a')
     #   end
     #
     def optimize_rules!(enable = true)
@@ -122,13 +123,14 @@ module Parslet
     end
 
     # Check if rule optimization is enabled.
-    # As of v3.1.0, defaults to TRUE for best performance.
+    # As of v3.1.0, defaults to FALSE for compatibility.
+    # Use optimize_rules! to opt-in for complex parsers that benefit.
     #
     # @return [Boolean] true if optimization enabled
     def optimize_rules?
-      # Default to true (enabled) for v3.1.0+
-      # Use disable_optimization! to opt-out
-      @optimize_rules = true if @optimize_rules.nil?
+      # Default to false (disabled) for compatibility
+      # Use optimize_rules! to opt-in for performance
+      @optimize_rules = false if @optimize_rules.nil?
       @optimize_rules
     end
 
@@ -370,6 +372,7 @@ end
 require 'parslet/version'
 require 'parslet/result'
 require 'parslet/slice'
+require 'parslet/rope'
 require 'parslet/first_set'
 require 'parslet/cause'
 require 'parslet/source'

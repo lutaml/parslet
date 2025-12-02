@@ -7,10 +7,26 @@ module Parslet::Atoms
   # this class. This makes the reporting pluggable.
   #
   class Context
+    # Parser-specific cache thresholds (Session 13)
+    # Based on profiling: different parsers have different cache benefit points
+    # - JSON: High recursion on large files, but medium files (5KB) see overhead
+    # - ERB: Moderate repetition, benefits from cache earlier
+    # - Calc: Lower repetition, needs larger input
+    # - Sentence: Simple linear grammar, minimal cache benefit
+    PARSER_CACHE_THRESHOLDS = {
+      'JsonParser' => 10_000,      # High threshold - json/medium regressed at 1000
+      'ErbParser' => 800,           # Moderate - working well
+      'CalcParser' => 2000,         # Low repetition
+      'SentenceParser' => 5000,     # Linear grammar
+      :default => 1000
+    }.freeze
+    
     # @param reporter [#err, #err_at] Error reporter (leave empty for default
     #   reporter)
     # @param interval_cache [Boolean] Use GPeg-style interval tree caching
-    def initialize(reporter=Parslet::ErrorReporter::Tree.new, interval_cache: false)
+    # @param adaptive_cache_threshold [Integer] Disable caching for inputs smaller than this (bytes)
+    # @param parser_class [Class] Parser class for per-parser threshold selection
+    def initialize(reporter=Parslet::ErrorReporter::Tree.new, interval_cache: false, adaptive_cache_threshold: nil, parser_class: nil)
       @cache = Hash.new { |h, k| h[k] = {} }
       @reporter = reporter
       @captures = Parslet::Scope.new
@@ -38,6 +54,24 @@ module Parslet::Atoms
       # Cut operator support (Phase 46b)
       # Track the last cut position to enable aggressive cache eviction
       @last_cut_position = 0
+
+      # Adaptive caching (Session 12-13): Disable cache for small inputs
+      # Session 13: Per-parser thresholds based on profiling
+      # - JSON medium (5KB) regressed with 1000-byte threshold → raised to 10KB
+      # - Different parsers have different cache benefit points
+      
+      # Determine threshold: explicit > parser-specific > default
+      threshold = adaptive_cache_threshold
+      if threshold.nil? && parser_class
+        # Extract simple class name (e.g., "MyJson::Parser" -> "Parser")
+        parser_name = parser_class.name&.split('::')&.last
+        threshold = PARSER_CACHE_THRESHOLDS[parser_name] || PARSER_CACHE_THRESHOLDS[:default]
+      end
+      threshold ||= PARSER_CACHE_THRESHOLDS[:default]
+      
+      @adaptive_cache_threshold = threshold
+      @input_size = nil  # Will be set on first parse attempt
+      @caching_enabled = nil  # Will be determined based on input size
     end
 
     # Caches a parse answer for obj at source.pos. Applying the same parslet
@@ -51,6 +85,21 @@ module Parslet::Atoms
     def try_with_cache(obj, source, consume_all)
       # Skip caching entirely for atoms that don't benefit from it
       unless obj.cached?
+        return obj.try(source, self, consume_all)
+      end
+
+      # Session 12: Adaptive caching based on input size
+      # Determine if caching should be enabled (only on first call)
+      if @caching_enabled.nil?
+        # Get total input size from source
+        input_size = source.bytepos + source.chars_left
+        @input_size = input_size
+        @caching_enabled = input_size >= @adaptive_cache_threshold
+      end
+
+      # For small inputs, skip caching entirely - the overhead exceeds benefit
+      # Profiling shows cache overhead is 15-20% for inputs < 1000 bytes
+      unless @caching_enabled
         return obj.try(source, self, consume_all)
       end
 

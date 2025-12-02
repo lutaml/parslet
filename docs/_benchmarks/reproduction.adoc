@@ -1,0 +1,120 @@
+---
+title: Reproduction Guide
+nav_order: 3
+parent: Benchmarks
+---
+
+= Benchmark Reproduction Guide
+
+This guide shows how to reproduce the performance benchmarks yourself.
+
+== Prerequisites
+
+* Ruby 3.0+ (tested with 3.3.2)
+* Bundler 2.0+
+* ~15 minutes for full benchmark suite
+
+== Quick Start
+
+[source,bash]
+----
+# Clone repository
+git clone https://github.com/plurimath/plurimath-parslet.git
+cd plurimath-parslet
+
+# Install dependencies
+bundle install
+
+# Run fair benchmarks (10-15 minutes)
+ruby benchmark/fair_comparison.rb
+
+# Validate methodology
+ruby benchmark/validate_fairness.rb
+
+# View results
+cat benchmark/results/fair_comparison.json | jq
+----
+
+== Benchmark Scripts
+
+=== Fair Comparison (Recommended)
+
+Runs both vanilla and optimized with identical methodology:
+
+[source,bash]
+----
+ruby benchmark/fair_comparison.rb
+----
+
+Results saved to `benchmark/results/fair_comparison.json`
+
+=== Validate Fairness
+
+Checks that benchmarks used proper methodology:
+
+[source,bash]
+----
+ruby benchmark/validate_fairness.rb
+----
+
+Should output: "✓ ALL VALIDATION CHECKS PASSED"
+
+== Understanding Results
+
+Results include:
+* IPS (iterations per second) for each test
+* Speedup ratios (optimized/vanilla)
+* 95% confidence intervals
+* Statistical significance flags
+* Memory allocation counts
+
+Example result:
+[source,json]
+----
+{
+  "parser": "json",
+  "input_file": "small.json",
+  "speedup": 1.20,
+  "improvement_pct": 20.2,
+  "statistically_significant": true
+}
+----
+
+== Custom Benchmarks
+
+To benchmark your own parser:
+
+[source,ruby]
+----
+require 'parslet'
+
+class MyParser < Parslet::Parser
+  # Your grammar here
+end
+
+# Benchmark it
+parser = MyParser.new
+input = "your input"
+
+require 'benchmark'
+Benchmark.bm do |x|
+  x.report("parse") { 100.times { parser.parse(input) } }
+end
+----
+
+== Troubleshooting
+
+**Benchmarks fail to install vanilla parslet**:
+Check that bundler can access rubygems.org
+
+**Results vary significantly between runs**:
+Ensure system is not under load, close other applications
+
+**Want to see progress**:
+Both scripts print progress to stderr during execution
+
+== See Also
+
+* link:comparison[Benchmark Comparison] - Full results
+* link:methodology[Benchmark Methodology] - How it works
+* link:https://github.com/plurimath/plurimath-parslet/tree/main/benchmark[Source Code]
