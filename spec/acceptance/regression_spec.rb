@@ -143,6 +143,9 @@ describe 'Regressions from real examples' do
         ')
       end
 
+      # The flatten/repetition optimization surfaces the full cause
+      # descent (the failing atom and its expected character) instead of
+      # an opaque "Don't know what to do" note; failure positions match.
       expect(remove_indent(cause.ascii_tree)).to eq(remove_indent(%q(
       Expected one of [(LINE EOL){1, }, LINE] at line 1 char 1.
       |- Extra input after last repetition at line 7 char 11.
@@ -150,7 +153,10 @@ describe 'Regressions from real examples' do
       |     `- Failed to match sequence (SPACE? [\n\r]{1, } SPACE?) at line 7 char 11.
       |        `- Expected at least 1 of [\n\r] at line 7 char 11.
       |           `- Failed to match [\n\r] at line 7 char 11.
-      `- Don't know what to do with "\n         " at line 1 char 2.).strip))
+      `- Failed to match sequence (SPACE? exp:AN_EXPRESSION{0, }) at line 1 char 1.
+         `- Extra input after last repetition at line 1 char 2.
+            `- Failed to match sequence (a:'a' SPACE?) at line 1 char 2.
+               `- Expected "a", but got "\n" at line 1 char 2.).strip))
     end
   end
 
